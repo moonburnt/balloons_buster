@@ -1,10 +1,10 @@
 #include "raylib.h"
 // For vector normalizaion
 #include "raymath.h"
-#include <entt/entity/registry.hpp>
+#include "entt/entity/registry.hpp"
 // For rand()
 #include <cstdlib>
-#include "engine.hpp"
+#include "engine/engine.hpp"
 #include <string>
 
 // Our components.
