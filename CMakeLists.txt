@@ -14,13 +14,15 @@ add_executable(Game
     dependencies/engine/engine.hpp
 )
 
-find_library(RAYLIB NAMES raylib REQUIRED)
-find_library(FMT NAMES fmt REQUIRED)
+# Setup raylib
+find_package(raylib REQUIRED)
+target_link_libraries(Game ${raylib_LIBRARIES})
+target_include_directories(Game PUBLIC ${raylib_INCLUDE_DIRS})
 
-target_link_libraries(Game
-    raylib
-    fmt
-)
+# Setup fmt
+find_package(fmt REQUIRED)
+target_link_libraries(Game ${fmt_LIBRARIES})
+target_include_directories(Game PUBLIC ${fmt_INCLUDE_DIRS})
 
 target_include_directories(Game
     PRIVATE
@@ -33,6 +35,7 @@ target_compile_features(Game
     cxx_std_17
 )
 
+# Set compile flags
 target_compile_options(Game
     PRIVATE
     -Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override
