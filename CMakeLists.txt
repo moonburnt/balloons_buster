@@ -12,8 +12,16 @@ add_executable(Game
     src/level.cpp
     src/level.hpp
     src/main.cpp
-    dependencies/engine/engine.cpp
-    dependencies/engine/engine.hpp
+    dependencies/engine/core.cpp
+    dependencies/engine/core.hpp
+    dependencies/engine/sound.cpp
+    dependencies/engine/sound.hpp
+    dependencies/engine/sprite.cpp
+    dependencies/engine/sprite.hpp
+    dependencies/engine/ui.cpp
+    dependencies/engine/ui.hpp
+    dependencies/engine/utility.cpp
+    dependencies/engine/utility.hpp
 )
 
 # Setup raylib
@@ -23,7 +31,7 @@ target_include_directories(Game PUBLIC ${raylib_INCLUDE_DIRS})
 
 # Setup fmt
 find_package(fmt REQUIRED)
-target_link_libraries(Game ${fmt_LIBRARIES})
+target_link_libraries(Game fmt::fmt)
 target_include_directories(Game PUBLIC ${fmt_INCLUDE_DIRS})
 
 target_include_directories(Game
