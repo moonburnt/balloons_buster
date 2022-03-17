@@ -9,6 +9,8 @@ project(Game
 )
 
 add_executable(Game
+    src/level.cpp
+    src/level.hpp
     src/main.cpp
     dependencies/engine/engine.cpp
     dependencies/engine/engine.hpp

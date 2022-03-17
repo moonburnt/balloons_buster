@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include "raylib.h"
+#include <string>
 
 // Scene is an abstract class that can't be instantiated directly, but can be
 // subclassed. This is how we do ABC interfaces in c++

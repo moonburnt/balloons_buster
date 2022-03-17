@@ -96,7 +96,8 @@ void GameWindow::init() {
 
 void GameWindow::run() {
     if (!initialized) {
-        std::cout << "Attempting to run unitialized GameWindow. Did you forget GameWindow.init()?\n";
+        std::cout << "Attempting to run unitialized GameWindow. Did you forget "
+                     "GameWindow.init()?\n";
         abort();
     };
 
