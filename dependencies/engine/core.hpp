@@ -59,4 +59,7 @@ public:
 
     // Run scene manager and other stuff
     void run();
+
+    // Default instance of GameWindow, accessible from everywhere
+    // static GameWindow window;
 };

@@ -11,6 +11,8 @@ project(Game
 add_executable(Game
     src/level.cpp
     src/level.hpp
+    src/menus.cpp
+    src/menus.hpp
     src/main.cpp
     dependencies/engine/core.cpp
     dependencies/engine/core.hpp
