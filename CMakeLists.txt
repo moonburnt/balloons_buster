@@ -22,6 +22,8 @@ add_executable(Game
     dependencies/engine/ui.hpp
     dependencies/engine/utility.cpp
     dependencies/engine/utility.hpp
+    dependencies/engine/storage.cpp
+    dependencies/engine/storage.hpp
 )
 
 # Setup raylib
