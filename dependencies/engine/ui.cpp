@@ -55,11 +55,11 @@ void Button::reset_state() {
 
 // Constructors dont need to specify return state
 Button::Button(
-    Texture2D* texture_default,
-    Texture2D* texture_hover,
-    Texture2D* texture_pressed,
-    Sound* sfx_hover,
-    Sound* sfx_click,
+    const Texture2D* texture_default,
+    const Texture2D* texture_hover,
+    const Texture2D* texture_pressed,
+    const Sound* sfx_hover,
+    const Sound* sfx_click,
     Rectangle rectangle) {
     textures[ButtonStates::idle] = texture_default;
     textures[ButtonStates::hover] = texture_hover;
@@ -147,11 +147,11 @@ bool Button::is_clicked() {
 // This is how we call parent's constructor from child constructor, with passing
 // required arguments to it. Parent's constructor will be solved after child.
 TextButton::TextButton(
-    Texture2D* texture_default,
-    Texture2D* texture_hover,
-    Texture2D* texture_pressed,
-    Sound* sfx_hover,
-    Sound* sfx_click,
+    const Texture2D* texture_default,
+    const Texture2D* texture_hover,
+    const Texture2D* texture_pressed,
+    const Sound* sfx_hover,
+    const Sound* sfx_click,
     Rectangle rectangle,
     std::string msg,
     Vector2 msg_pos)
@@ -166,11 +166,11 @@ TextButton::TextButton(
 }
 
 TextButton::TextButton(
-    Texture2D* texture_default,
-    Texture2D* texture_hover,
-    Texture2D* texture_pressed,
-    Sound* sfx_hover,
-    Sound* sfx_click,
+    const Texture2D* texture_default,
+    const Texture2D* texture_hover,
+    const Texture2D* texture_pressed,
+    const Sound* sfx_hover,
+    const Sound* sfx_click,
     Rectangle rectangle,
     std::string msg)
     : TextButton(
@@ -209,14 +209,14 @@ void TextButton::set_pos(Vector2 position) {
 
 // Checkbox shenanigans
 Checkbox::Checkbox(
-    Texture2D* texture_on_default,
-    Texture2D* texture_on_hover,
-    Texture2D* texture_on_pressed,
-    Texture2D* texture_off_default,
-    Texture2D* texture_off_hover,
-    Texture2D* texture_off_pressed,
-    Sound* sfx_hover,
-    Sound* sfx_click,
+    const Texture2D* texture_on_default,
+    const Texture2D* texture_on_hover,
+    const Texture2D* texture_on_pressed,
+    const Texture2D* texture_off_default,
+    const Texture2D* texture_off_hover,
+    const Texture2D* texture_off_pressed,
+    const Sound* sfx_hover,
+    const Sound* sfx_click,
     Rectangle rectangle,
     bool default_state)
     : Button(
@@ -235,14 +235,14 @@ Checkbox::Checkbox(
 }
 
 Checkbox::Checkbox(
-    Texture2D* texture_on_default,
-    Texture2D* texture_on_hover,
-    Texture2D* texture_on_pressed,
-    Texture2D* texture_off_default,
-    Texture2D* texture_off_hover,
-    Texture2D* texture_off_pressed,
-    Sound* sfx_hover,
-    Sound* sfx_click,
+    const Texture2D* texture_on_default,
+    const Texture2D* texture_on_hover,
+    const Texture2D* texture_on_pressed,
+    const Texture2D* texture_off_default,
+    const Texture2D* texture_off_hover,
+    const Texture2D* texture_off_pressed,
+    const Sound* sfx_hover,
+    const Sound* sfx_click,
     Rectangle rectangle)
     : Checkbox(
           texture_on_default,

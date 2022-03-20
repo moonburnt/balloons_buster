@@ -1,6 +1,5 @@
 #include "storage.hpp"
 #include "raylib.h"
-#include <cstdlib>
 #include <string>
 
 void SpriteStorage::load(std::string path, std::string extension) {

@@ -9,6 +9,8 @@ project(Game
 )
 
 add_executable(Game
+    src/shared.cpp
+    src/shared.hpp
     src/level.cpp
     src/level.hpp
     src/menus.cpp
@@ -52,5 +54,5 @@ target_compile_features(Game
 # Set compile flags
 target_compile_options(Game
     PRIVATE
-    -Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override
+    -Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override -ferror-limit=5
 )

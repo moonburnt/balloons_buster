@@ -67,10 +67,10 @@ protected:
     ButtonStates state;
     // State update mode. See set_manual_update_mode();
     bool manual_update_mode;
-    std::unordered_map<ButtonStates, Texture2D*> textures;
+    std::unordered_map<ButtonStates, const Texture2D*> textures;
 
 private:
-    std::unordered_map<int, Sound*> sounds;
+    std::unordered_map<int, const Sound*> sounds;
     // Button's hitbox. X and Y are offsets from texture's top left
     Rectangle rect;
     // Button state from previous screen
@@ -78,11 +78,11 @@ private:
 
 public:
     Button(
-        Texture2D* texture_default,
-        Texture2D* texture_hover,
-        Texture2D* texture_pressed,
-        Sound* sfx_hover,
-        Sound* sfx_click,
+        const Texture2D* texture_default,
+        const Texture2D* texture_hover,
+        const Texture2D* texture_pressed,
+        const Sound* sfx_hover,
+        const Sound* sfx_click,
         Rectangle rectangle);
     ButtonStates update() override;
     void draw() override;
@@ -111,11 +111,11 @@ private:
 
 public:
     TextButton(
-        Texture2D* texture_default,
-        Texture2D* texture_hover,
-        Texture2D* texture_pressed,
-        Sound* sfx_hover,
-        Sound* sfx_click,
+        const Texture2D* texture_default,
+        const Texture2D* texture_hover,
+        const Texture2D* texture_pressed,
+        const Sound* sfx_hover,
+        const Sound* sfx_click,
         Rectangle rectangle,
         std::string msg,
         Vector2 msg_pos);
@@ -123,11 +123,11 @@ public:
     // automatically, if amount/order of items received by constructor match.
     // This may be useful, since cpp doesn't have kwargs.
     TextButton(
-        Texture2D* texture_default,
-        Texture2D* texture_hover,
-        Texture2D* texture_pressed,
-        Sound* sfx_hover,
-        Sound* sfx_click,
+        const Texture2D* texture_default,
+        const Texture2D* texture_hover,
+        const Texture2D* texture_pressed,
+        const Sound* sfx_hover,
+        const Sound* sfx_click,
         Rectangle rectangle,
         std::string msg);
 
@@ -140,7 +140,7 @@ public:
 class Checkbox : public Button {
 private:
     // Storage for textures of disabled checkbox
-    std::unordered_map<ButtonStates, Texture2D*> textures_off;
+    std::unordered_map<ButtonStates, const Texture2D*> textures_off;
     // State of checkbox (on or off)
     bool toggle_state;
     // Has checkbox'es state been changed with toggle() or not.
@@ -148,25 +148,25 @@ private:
 
 public:
     Checkbox(
-        Texture2D* texture_on_default,
-        Texture2D* texture_on_hover,
-        Texture2D* texture_on_pressed,
-        Texture2D* texture_off_default,
-        Texture2D* texture_off_hover,
-        Texture2D* texture_off_pressed,
-        Sound* sfx_hover,
-        Sound* sfx_click,
+        const Texture2D* texture_on_default,
+        const Texture2D* texture_on_hover,
+        const Texture2D* texture_on_pressed,
+        const Texture2D* texture_off_default,
+        const Texture2D* texture_off_hover,
+        const Texture2D* texture_off_pressed,
+        const Sound* sfx_hover,
+        const Sound* sfx_click,
         Rectangle rectangle);
 
     Checkbox(
-        Texture2D* texture_on_default,
-        Texture2D* texture_on_hover,
-        Texture2D* texture_on_pressed,
-        Texture2D* texture_off_default,
-        Texture2D* texture_off_hover,
-        Texture2D* texture_off_pressed,
-        Sound* sfx_hover,
-        Sound* sfx_click,
+        const Texture2D* texture_on_default,
+        const Texture2D* texture_on_hover,
+        const Texture2D* texture_on_pressed,
+        const Texture2D* texture_off_default,
+        const Texture2D* texture_off_hover,
+        const Texture2D* texture_off_pressed,
+        const Sound* sfx_hover,
+        const Sound* sfx_click,
         Rectangle rectangle,
         bool default_state);
 

@@ -15,8 +15,13 @@ public:
 
     virtual void load(std::string path, std::string extension) = 0;
 
-    ContentType operator[](std::string key) {
-        return items[key];
+    // Returns not actual content, but constant pointer to it, to refrain from
+    // copying large data chunks around
+    const ContentType* operator[](const std::string& key) {
+        // Using .at() and not [] there, because default implementation of []
+        // makes it hard to debug things - instead of throwing an error on
+        // non-existing value, it will return something weird
+        return &items.at(key);
     }
 };
 
