@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 // To find() things in InputHandler
+#include "engine/core.hpp"
 #include <algorithm>
 
 static constexpr uint32_t DEFAULT_TEXT_SIZE = 20u;
@@ -110,3 +111,17 @@ bool has_mouse_moved();
 // Returns true if second rect is inside first rect, false if some part of it
 // is outside of borders.
 bool is_rect_inside_rect(Rectangle first, Rectangle second);
+
+// TODO: store format and make it possible to configure it
+// TODO: store position, font and other things, make it possible to configure them
+// on object creation
+class FrameCounter : public Node {
+private:
+    int fps_value;
+
+public:
+    FrameCounter();
+
+    void update() override;
+    void draw() override;
+};

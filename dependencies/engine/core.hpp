@@ -2,12 +2,27 @@
 
 #include "raylib.h"
 #include <string>
+#include <vector>
+
+// Node is an abstract thing that can be attached to Scene or SceneManager
+class Node {
+public:
+    virtual ~Node() = default;
+
+    virtual void update() = 0;
+    virtual void draw() = 0;
+};
 
 // Scene is an abstract class that can't be instantiated directly, but can be
 // subclassed. This is how we do ABC interfaces in c++
 // In this case its located in header, coz SceneManager needs it
 class Scene {
+private:
+    std::vector<Node*> nodes;
+
 public:
+    void add_node(Node* node);
+
     // Thats how we define abstract functions
     virtual void update(float dt) = 0;
     virtual void draw() = 0;
@@ -22,13 +37,18 @@ public:
 };
 
 class SceneManager {
-    // We are using pointer to Scene, to make it work with Scene's children
-
 private:
+    // We are using pointer to Scene, to make it work with Scene's children
     Scene* current_scene;
+    // Node storage. Unsure if it should be map or vector
+    std::vector<Node*> nodes;
 
 public:
     SceneManager();
+    ~SceneManager();
+
+    void add_node(Node* node);
+
     void set_current_scene(Scene* scene);
     void run_update_loop();
     bool active;

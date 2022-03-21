@@ -1,3 +1,4 @@
+#include "engine/utility.hpp"
 #include "menus.hpp"
 #include "shared.hpp"
 
@@ -15,6 +16,8 @@ int main() {
 
     shared::assets.sprites.load(SPRITE_PATH, SPRITE_FORMAT);
     shared::assets.sounds.load(SFX_PATH, SFX_FORMAT);
+
+    shared::window.sc_mgr.add_node(new FrameCounter());
 
     shared::window.sc_mgr.set_current_scene(new TitleScreen(&shared::window.sc_mgr));
     shared::window.run();

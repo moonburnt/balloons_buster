@@ -13,6 +13,10 @@ Scene::Scene()
     : bg_color(Color{245, 245, 245, 255}) {
 }
 
+void Scene::add_node(Node* node) {
+    nodes.push_back(node);
+}
+
 // Scene manager
 
 // There are two ways to work with scenes: to add scene manually each time,
@@ -38,14 +42,18 @@ void SceneManager::run_update_loop() {
         float dt = static_cast<float>(GetFrameTime());
         current_scene->update(dt);
 
+        for (auto i : nodes) {
+            i->update();
+        }
+
         BeginDrawing();
         ClearBackground(current_scene->bg_color);
         current_scene->draw();
 
-        // // Maybe I should store it somewhere?
-        // if (SettingsManager::manager.get_show_fps()) {
-        //     DrawText(TextFormat("FPS: %02i", GetFPS()), 1200, 4, 20, BLACK);
-        // }
+        for (auto i : nodes) {
+            i->draw();
+        }
+
         EndDrawing();
     }
 
@@ -64,12 +72,22 @@ SceneManager::SceneManager() {
     active = true;
 }
 
+void SceneManager::add_node(Node* node) {
+    nodes.push_back(node);
+}
+
+SceneManager::~SceneManager() {
+    // TODO: stub. Maybe should delete all nodes there
+}
+
 // GameWindow stuff
 GameWindow::GameWindow() {
     initialized = false;
 }
 
 void GameWindow::init(int x, int y, std::string title, int fps) {
+    std::cout << "Initializing GameWindow.\n";
+
     InitWindow(x, y, title.c_str());
     // Setting window's framerate
     SetTargetFPS(fps);

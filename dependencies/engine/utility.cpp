@@ -85,3 +85,17 @@ bool is_rect_inside_rect(Rectangle first, Rectangle second) {
         first.x <= second.x && first.y <= second.y && first.width >= second.width &&
         first.height >= second.height);
 }
+
+// FPS counter
+// Maybe I should store it somewhere?
+FrameCounter::FrameCounter()
+    : fps_value(0) {
+}
+
+void FrameCounter::update() {
+    fps_value = GetFPS();
+}
+
+void FrameCounter::draw() {
+    DrawText(TextFormat("FPS: %02i", fps_value), 1200, 4, 20, BLACK);
+}
