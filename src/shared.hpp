@@ -2,6 +2,9 @@
 
 #include "engine/core.hpp"
 #include "engine/storage.hpp"
+#include "settings.hpp"
+
+static constexpr const char* SETTINGS_PATH = "./settings.toml";
 
 // There we specify things, access to which should be shared across other files
 struct AssetLoader {
@@ -15,4 +18,5 @@ struct AssetLoader {
 namespace shared {
 extern GameWindow window;
 extern AssetLoader assets;
+static SettingsManager config = SettingsManager(SETTINGS_PATH);
 }
