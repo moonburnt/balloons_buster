@@ -52,3 +52,40 @@ std::vector<Sprite> make_sprites(Texture2D* spritesheet, Vector2 sprite_size) {
 
     return sprites;
 }
+
+// Animation stuff
+
+Animation::Animation(
+    std::vector<const Texture2D*> _frames, float speed, bool _loop, Vector2 _pos)
+    : timer(speed)
+    , frames(_frames)
+    , loop(_loop)
+    , current_frame(0)
+    , pos(_pos) {
+    timer.start();
+}
+
+Animation::Animation(std::vector<const Texture2D*> _frames, float speed, bool _loop)
+    : Animation(_frames, speed, _loop, {0, 0}) {
+    timer.start();
+}
+
+void Animation::update(float dt) {
+    if (timer.tick(dt)) {
+        if (current_frame + 1 < static_cast<int>(frames.size())) {
+            current_frame++;
+            timer.start();
+        }
+        else if (loop) {
+            current_frame = 0;
+            timer.start();
+        }
+        else {
+            timer.stop();
+        }
+    };
+}
+
+void Animation::draw() {
+    DrawTexture(*frames[current_frame], pos.x, pos.y, WHITE);
+}

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "utility.hpp"
 #include <raylib.h>
 #include <vector>
 
@@ -23,5 +24,22 @@ Sprite make_sprite(Texture2D* spritesheet, Rectangle sprite_rect);
 // cut into specified sized sprites perfectly - will throw an exception.
 std::vector<Sprite> make_sprites(Texture2D* spritesheet, Vector2 sprite_size);
 
-// TODO: spritesheet animation, maybe make some AnimationBase, to allow for both
-// sprite-driven and texture-driven anims
+// TODO: maybe make it possible for animation to be both based on spritesheet
+// and separate textures?
+class Animation {
+private:
+    Timer timer;
+    std::vector<const Texture2D*> frames;
+    bool loop;
+    int current_frame;
+
+public:
+    Vector2 pos;
+
+    // Maybe I should make it not vector, but something less memory-consuming? TODO
+    Animation(std::vector<const Texture2D*> frames, float speed, bool loop, Vector2 pos);
+    Animation(std::vector<const Texture2D*> frames, float speed, bool loop);
+
+    void update(float dt);
+    void draw();
+};
