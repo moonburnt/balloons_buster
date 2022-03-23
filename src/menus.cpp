@@ -1,7 +1,9 @@
 #include "menus.hpp"
+#include "common.hpp"
 #include "level.hpp"
 #include "shared.hpp"
 
+// Title Screen
 TitleScreen::TitleScreen(SceneManager* p) {
     parent = p;
 
@@ -15,8 +17,6 @@ TitleScreen::TitleScreen(SceneManager* p) {
 }
 
 void TitleScreen::update(float dt) {
-    // TODO: add timer that will automatically switch to main menu after
-    // some time has been passed since title's update
     if (timer->tick(dt)) {
         parent->set_current_scene(new MainMenu(parent));
     }
@@ -31,7 +31,7 @@ void TitleScreen::draw() {
         DEFAULT_TEXT_COLOR);
 }
 
-// Main menu logic
+// Main menu
 void MainMenu::call_exit() {
     parent->active = false;
 }
@@ -52,44 +52,15 @@ void MainMenu::open_settings() {
 MainMenu::MainMenu(SceneManager* p) {
     parent = p;
 
-    // TODO: rework this trash
-    buttons.add_button(new TextButton(
-        shared::assets.sprites["button_default"],
-        shared::assets.sprites["button_hover"],
-        shared::assets.sprites["button_pressed"],
-        shared::assets.sounds["button_hover"],
-        shared::assets.sounds["button_clicked"],
-        Rectangle{0, 0, 256, 64},
-        "New Game"));
-    buttons.add_button(new TextButton(
-        shared::assets.sprites["button_default"],
-        shared::assets.sprites["button_hover"],
-        shared::assets.sprites["button_pressed"],
-        shared::assets.sounds["button_hover"],
-        shared::assets.sounds["button_clicked"],
-        Rectangle{0, 0, 256, 64},
-        "Settings"));
-    buttons.add_button(new TextButton(
-        shared::assets.sprites["button_default"],
-        shared::assets.sprites["button_hover"],
-        shared::assets.sprites["button_pressed"],
-        shared::assets.sounds["button_hover"],
-        shared::assets.sounds["button_clicked"],
-        Rectangle{0, 0, 256, 64},
-        "Exit"));
+    buttons.add_button(make_text_button("New Game"));
+    buttons.add_button(make_text_button("Settings"));
+    buttons.add_button(make_text_button("Exit"));
 
     float center_x = GetScreenWidth() / 2.0f;
     float center_y = GetScreenHeight() / 2.0f;
 
     // if (SettingsManager::manager.savefile) {
-    //     buttons.add_button(new TextButton(
-    //         &shared::assets.sprites["button_default"],
-    //         &shared::assets.sprites["button_hover"],
-    //         &shared::assets.sprites["button_pressed"],
-    //         &shared::assets.sounds["button_hover"],
-    //         &shared::assets.sounds["button_clicked"],
-    //         Rectangle{0, 0, 256, 64},
-    //         "Continue"));
+    //     buttons.add_button(make_text_button("Continue"));
 
     //     buttons[MM_CONTINUE]->set_pos(Vector2{
     //         center_x - buttons[MM_CONTINUE]->get_rect().width / 2,
@@ -115,6 +86,7 @@ void MainMenu::update(float) {
     //     load_game();
     //     return;
     // }
+
     if (buttons[MM_NEWGAME]->is_clicked()) {
         new_game();
         return;

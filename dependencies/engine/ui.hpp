@@ -222,8 +222,3 @@ public:
     // probably lead to segfault.
     ButtonBase* operator[](int i);
 };
-
-// Fabriques for some common button types
-Button make_close_button();
-TextButton make_text_button(std::string txt);
-Checkbox make_checkbox(bool default_state);
