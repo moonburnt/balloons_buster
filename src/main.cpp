@@ -29,7 +29,7 @@ int main() {
     shared::assets.sounds.load(SFX_PATH, SFX_FORMAT);
 
     if (shared::config.settings["show_fps"].value_or(false)) {
-        shared::window.sc_mgr.add_node(new FrameCounter());
+        shared::window.sc_mgr.nodes["fps_counter"] = new FrameCounter();
     };
 
     shared::window.sc_mgr.set_current_scene(new TitleScreen(&shared::window.sc_mgr));

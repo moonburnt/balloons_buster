@@ -2,7 +2,7 @@
 
 #include "raylib.h"
 #include <string>
-#include <vector>
+#include <unordered_map>
 
 // Node is an abstract thing that can be attached to Scene or SceneManager
 class Node {
@@ -17,11 +17,8 @@ public:
 // subclassed. This is how we do ABC interfaces in c++
 // In this case its located in header, coz SceneManager needs it
 class Scene {
-private:
-    std::vector<Node*> nodes;
-
 public:
-    void add_node(Node* node);
+    std::unordered_map<std::string, Node*> nodes;
 
     // Thats how we define abstract functions
     virtual void update(float dt) = 0;
@@ -40,14 +37,13 @@ class SceneManager {
 private:
     // We are using pointer to Scene, to make it work with Scene's children
     Scene* current_scene;
-    // Node storage. Unsure if it should be map or vector
-    std::vector<Node*> nodes;
 
 public:
+    // Node storage.
+    std::unordered_map<std::string, Node*> nodes;
+
     SceneManager();
     ~SceneManager();
-
-    void add_node(Node* node);
 
     void set_current_scene(Scene* scene);
     void run_update_loop();

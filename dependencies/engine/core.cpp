@@ -13,10 +13,6 @@ Scene::Scene()
     : bg_color(Color{245, 245, 245, 255}) {
 }
 
-void Scene::add_node(Node* node) {
-    nodes.push_back(node);
-}
-
 // Scene manager
 
 // There are two ways to work with scenes: to add scene manually each time,
@@ -42,7 +38,7 @@ void SceneManager::run_update_loop() {
         float dt = static_cast<float>(GetFrameTime());
         current_scene->update(dt);
 
-        for (auto i : nodes) {
+        for (const auto& [_, i] : nodes) {
             i->update();
         }
 
@@ -50,7 +46,7 @@ void SceneManager::run_update_loop() {
         ClearBackground(current_scene->bg_color);
         current_scene->draw();
 
-        for (auto i : nodes) {
+        for (const auto& [_, i] : nodes) {
             i->draw();
         }
 
@@ -70,10 +66,6 @@ SceneManager::SceneManager() {
 
     // active = false;
     active = true;
-}
-
-void SceneManager::add_node(Node* node) {
-    nodes.push_back(node);
 }
 
 SceneManager::~SceneManager() {
