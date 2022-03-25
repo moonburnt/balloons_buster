@@ -5,39 +5,57 @@
 #include <cstdlib>
 
 // Our components.
-// BallComponent is a basic component to draw a circle
+// Position component will be just Vector2 - no need to specify it, but we can
+// typedef an alias, to make it easier to understand.
+// TODO: maybe revert it back to be part of BallComponent?
+typedef Vector2 PosComp;
+
+// BallComponent. Require Vector2 to work
 struct BallComponent {
     Color color;
     float radius;
-    Vector2 position;
 };
 
-// MovementCompoment. Since BallComponent already contains position, doesn't
-// feature it.
+// MovementCompoment. Require Vector2 to work
 struct MovementComponent {
     Vector2 direction;
     float speed;
 };
 
+void process_collisions(entt::registry& registry, Vector2 mouse_pos) {
+    // This may go wrong if PosComp will ever be attached to things that should
+    // not collide with player's pointer
+    auto this_view = registry.view<PosComp, BallComponent>();
+
+    for (auto entity : this_view) {
+        PosComp& pos = this_view.get<PosComp>(entity);
+        BallComponent& ball = this_view.get<BallComponent>(entity);
+        if (CheckCollisionPointCircle(mouse_pos, pos, ball.radius)) {
+            // TODO: add death animation, schedule destroying
+            registry.destroy(entity);
+        };
+    };
+}
+
 void move_balls(entt::registry& registry, int room_x, int room_y, float dt) {
-    auto this_view = registry.view<BallComponent, MovementComponent>();
+    auto this_view = registry.view<PosComp, MovementComponent>();
 
     // There are many ways to iterate through components in EnTT.
     // For the sake of simplicity, we will use a simple for loop there.
     for (auto entity : this_view) {
         MovementComponent& movement = this_view.get<MovementComponent>(entity);
-        BallComponent& ball = this_view.get<BallComponent>(entity);
+        PosComp& pos = this_view.get<PosComp>(entity);
 
-        ball.position.x += movement.direction.x * (movement.speed * dt);
-        ball.position.y += movement.direction.y * (movement.speed * dt);
+        pos.x += movement.direction.x * (movement.speed * dt);
+        pos.y += movement.direction.y * (movement.speed * dt);
 
         // Ensuring balls will never leave screen's area
         bool direction_changed = false;
-        if (ball.position.x < 0 || ball.position.x > room_x) {
+        if (pos.x < 0 || pos.x > room_x) {
             movement.direction.x = -movement.direction.x;
             direction_changed = true;
         }
-        if (ball.position.y < 0 || ball.position.y > room_y) {
+        if (pos.y < 0 || pos.y > room_y) {
             movement.direction.y = -movement.direction.y;
             direction_changed = true;
         }
@@ -48,18 +66,19 @@ void move_balls(entt::registry& registry, int room_x, int room_y, float dt) {
             registry.replace<MovementComponent>(entity, movement);
         }
 
-        registry.replace<BallComponent>(entity, ball);
+        registry.replace<PosComp>(entity, pos);
     }
 }
 
 void draw_balls(entt::registry& registry) {
     // In order to iterate through components, we must make a view - an iterator
     // that will grab specified elements from storage.
-    auto this_view = registry.view<BallComponent>();
+    auto this_view = registry.view<PosComp, BallComponent>();
 
     // Lets iterate with callback there.
-    this_view.each(
-        [](const auto& ball) { DrawCircleV(ball.position, ball.radius, ball.color); });
+    this_view.each([](const auto& pos, const auto& ball) {
+        DrawCircleV(pos, ball.radius, ball.color);
+    });
 }
 
 // Returns random Vector2 with values between 0 and provided
@@ -89,7 +108,6 @@ Color get_rand_color() {
 }
 
 // Level stuff
-
 Level::Level(int x, int y)
     : level_x(x)
     , level_y(y) {
@@ -98,23 +116,23 @@ Level::Level(int x, int y)
     for (int i = 0; i < balls_amount; i++) {
         // First we need to initialize an empty entity with no components.
         // This will make registry assign an unique entity id to it and return it.
-        auto ball = registry.create();
+        entt::entity ball = registry.create();
 
         // Now lets initialize and attach all required components to our entity id.
-        Vector2 pos = get_rand_vec2(level_x, level_y);
-        Vector2 direction = Vector2Normalize(get_rand_vec2(level_x, level_y));
-
+        registry.emplace<PosComp>(ball, get_rand_vec2(level_x, level_y));
         registry.emplace<BallComponent>(
             ball,
             get_rand_color(),
-            static_cast<float>(std::rand() % 50) + 10.0f,
-            pos);
+            static_cast<float>(std::rand() % 50) + 10.0f);
 
         float spd = static_cast<float>(std::rand() % 200);
         // Because speed is constant in our example, we could simply use it to
         // determine if we need movement component at all or not
         if (spd) {
-            registry.emplace<MovementComponent>(ball, direction, spd);
+            registry.emplace<MovementComponent>(
+                ball,
+                Vector2Normalize(get_rand_vec2(level_x, level_y)),
+                spd);
         };
     }
 }
@@ -124,6 +142,10 @@ Level::Level()
 }
 
 void Level::update(float dt) {
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        process_collisions(registry, GetMousePosition());
+    };
+
     move_balls(registry, level_x, level_y, dt);
 }
 
