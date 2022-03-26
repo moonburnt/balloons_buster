@@ -10,11 +10,10 @@ private:
     // Level's registry that will hold our entities.
     entt::registry registry;
 
-    int level_x;
-    int level_y;
+    Vector2 room_size;
 
 public:
-    Level(int x, int y);
+    Level(Vector2 room_size);
     Level();
 
     void update(float dt) override;

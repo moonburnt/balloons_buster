@@ -1,4 +1,5 @@
 #include "level.hpp"
+#include "common.hpp"
 // For vector normalizaion
 #include "raymath.h"
 // For rand()
@@ -37,7 +38,7 @@ void process_collisions(entt::registry& registry, Vector2 mouse_pos) {
     };
 }
 
-void move_balls(entt::registry& registry, int room_x, int room_y, float dt) {
+void move_balls(entt::registry& registry, Vector2 room_size, float dt) {
     auto this_view = registry.view<PosComp, MovementComponent>();
 
     // There are many ways to iterate through components in EnTT.
@@ -51,11 +52,11 @@ void move_balls(entt::registry& registry, int room_x, int room_y, float dt) {
 
         // Ensuring balls will never leave screen's area
         bool direction_changed = false;
-        if (pos.x < 0 || pos.x > room_x) {
+        if (pos.x < 0 || pos.x > room_size.x) {
             movement.direction.x = -movement.direction.x;
             direction_changed = true;
         }
-        if (pos.y < 0 || pos.y > room_y) {
+        if (pos.y < 0 || pos.y > room_size.y) {
             movement.direction.y = -movement.direction.y;
             direction_changed = true;
         }
@@ -81,64 +82,40 @@ void draw_balls(entt::registry& registry) {
     });
 }
 
-// Returns random Vector2 with values between 0 and provided
-Vector2 get_rand_vec2(int x, int y) {
-    return Vector2{
-        static_cast<float>(std::rand() % x),
-        static_cast<float>(std::rand() % y)};
-}
-
-// Returns random non-white color
-Color get_rand_color() {
-    int rgb[3];
-
-    for (int i = 0; i < 3; i++) {
-        rgb[i] = std::rand() % 255;
-    }
-
-    if (rgb[0] == 0 && rgb[1] == 0 && rgb[2] == 0) {
-        rgb[std::rand() % 3] = 10;
-    }
-
-    return Color{
-        static_cast<unsigned char>(rgb[0]),
-        static_cast<unsigned char>(rgb[1]),
-        static_cast<unsigned char>(rgb[2]),
-        255};
-}
-
-// Level stuff
-Level::Level(int x, int y)
-    : level_x(x)
-    , level_y(y) {
-    // Now, lets create our entities. Say, about 10 ~ 30 would be ok?
-    const int balls_amount = (std::rand() % 20) + 10;
-    for (int i = 0; i < balls_amount; i++) {
+void spawn_balls(entt::registry& registry, Vector2 room_size, int amount) {
+    for (int i = 0; i < amount; i++) {
         // First we need to initialize an empty entity with no components.
         // This will make registry assign an unique entity id to it and return it.
         entt::entity ball = registry.create();
 
         // Now lets initialize and attach all required components to our entity id.
-        registry.emplace<PosComp>(ball, get_rand_vec2(level_x, level_y));
+        registry.emplace<PosComp>(
+            ball,
+            PosComp{
+                static_cast<float>(std::rand() % static_cast<int>(room_size.x)),
+                room_size.y});
         registry.emplace<BallComponent>(
             ball,
             get_rand_color(),
             static_cast<float>(std::rand() % 50) + 10.0f);
-
-        float spd = static_cast<float>(std::rand() % 200);
-        // Because speed is constant in our example, we could simply use it to
-        // determine if we need movement component at all or not
-        if (spd) {
-            registry.emplace<MovementComponent>(
-                ball,
-                Vector2Normalize(get_rand_vec2(level_x, level_y)),
-                spd);
-        };
+        registry.emplace<MovementComponent>(
+            ball,
+            Vector2Normalize(get_rand_vec2(room_size)),
+            static_cast<float>(std::rand() % 200) + 10.0f);
     }
 }
 
+// Level stuff
+Level::Level(Vector2 _room_size)
+    : room_size(_room_size) {
+    // Spaning about 10 ~ 30 balls on screen (for now).
+    // TODO: rework this value to be based on Level's level.
+    spawn_balls(registry, room_size, (std::rand() % 20) + 10);
+}
+
 Level::Level()
-    : Level(GetScreenWidth(), GetScreenHeight()) {
+    : Level(
+          {static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight())}) {
 }
 
 void Level::update(float dt) {
@@ -146,7 +123,7 @@ void Level::update(float dt) {
         process_collisions(registry, GetMousePosition());
     };
 
-    move_balls(registry, level_x, level_y, dt);
+    move_balls(registry, room_size, dt);
 }
 
 void Level::draw() {
