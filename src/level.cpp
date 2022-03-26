@@ -2,6 +2,10 @@
 #include "common.hpp"
 // For vector normalizaion
 #include "raymath.h"
+// For basic formatting
+#include <fmt/core.h>
+// For printf
+#include <fmt/printf.h>
 // For rand()
 #include <cstdlib>
 
@@ -23,7 +27,8 @@ struct MovementComponent {
     float speed;
 };
 
-void process_collisions(entt::registry& registry, Vector2 mouse_pos) {
+void process_collisions(
+    entt::registry& registry, Vector2 mouse_pos, int& enemies_left, int& score) {
     // This may go wrong if PosComp will ever be attached to things that should
     // not collide with player's pointer
     auto this_view = registry.view<PosComp, BallComponent>();
@@ -34,6 +39,11 @@ void process_collisions(entt::registry& registry, Vector2 mouse_pos) {
         if (CheckCollisionPointCircle(mouse_pos, pos, ball.radius)) {
             // TODO: add death animation, schedule destroying
             registry.destroy(entity);
+            enemies_left--;
+            // TODO: "RewardComp" with different score values depending on type
+            score += 10;
+            // For now, its only possible to pop one balloon at once
+            return;
         };
     };
 }
@@ -83,6 +93,7 @@ void draw_balls(entt::registry& registry) {
 }
 
 void spawn_balls(entt::registry& registry, Vector2 room_size, int amount) {
+    fmt::printf("Attempting to spawn %i enemies\n", amount);
     for (int i = 0; i < amount; i++) {
         // First we need to initialize an empty entity with no components.
         // This will make registry assign an unique entity id to it and return it.
@@ -107,10 +118,16 @@ void spawn_balls(entt::registry& registry, Vector2 room_size, int amount) {
 
 // Level stuff
 Level::Level(Vector2 _room_size)
-    : room_size(_room_size) {
-    // Spaning about 10 ~ 30 balls on screen (for now).
-    // TODO: rework this value to be based on Level's level.
-    spawn_balls(registry, room_size, (std::rand() % 20) + 10);
+    : room_size(_room_size)
+    , max_enemies(30) // TODO: rework this value to be based on Level's level.
+    , enemies_left((std::rand() % (max_enemies - 10)) + 10)
+    , score(0)
+    , lifes(5)
+    , score_counter(fmt::format("Score: {}", score), {10.0f, 10.0f})
+    , life_counter(fmt::format("Lifes: {}", lifes), {10.0f, 40.0f})
+    , spawn_timer(3.5f) {
+    spawn_balls(registry, room_size, enemies_left);
+    spawn_timer.start();
 }
 
 Level::Level()
@@ -120,12 +137,25 @@ Level::Level()
 
 void Level::update(float dt) {
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        process_collisions(registry, GetMousePosition());
+        process_collisions(registry, GetMousePosition(), enemies_left, score);
+        score_counter.set_text(fmt::format("Score: {}", score));
+        life_counter.set_text(fmt::format("Lifes: {}", lifes));
     };
 
     move_balls(registry, room_size, dt);
+
+    if (enemies_left < max_enemies) {
+        if (spawn_timer.tick(dt)) {
+            spawn_timer.start();
+            int spawn_amount = (std::rand() % (max_enemies - enemies_left - 1)) + 1;
+            enemies_left += spawn_amount;
+            spawn_balls(registry, room_size, spawn_amount);
+        }
+    }
 }
 
 void Level::draw() {
     draw_balls(registry);
+    score_counter.draw();
+    life_counter.draw();
 }

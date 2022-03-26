@@ -1,6 +1,8 @@
 #pragma once
 
 #include "engine/core.hpp"
+#include "engine/ui.hpp"
+#include "engine/utility.hpp"
 #include "entt/entity/registry.hpp"
 #include "raylib.h"
 #include <string>
@@ -11,6 +13,19 @@ private:
     entt::registry registry;
 
     Vector2 room_size;
+    // Max enemies amount
+    int max_enemies;
+    // Enemies currently on screen. If < max_enemies, new enemies will spawn
+    int enemies_left;
+    int score;
+    // Player lifes left
+    int lifes;
+
+    Label score_counter;
+    Label life_counter;
+
+    // Balls spawn cooldown
+    Timer spawn_timer;
 
 public:
     Level(Vector2 room_size);
