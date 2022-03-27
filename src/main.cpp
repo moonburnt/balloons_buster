@@ -6,6 +6,7 @@
 #include <algorithm>
 // For string comparison
 #include <cstring>
+#include <raylib.h>
 
 #define ASSET_PATH "./Assets/"
 static constexpr const char* SPRITE_PATH = ASSET_PATH "Sprites/";
@@ -37,6 +38,15 @@ int main(int argc, char* const* argv) {
         std::max(shared::config.settings["resolution"][0].value_or(1280), 1280),
         std::max(shared::config.settings["resolution"][1].value_or(720), 720),
         "Balloon Buster");
+
+    if (shared::config.settings["fullscreen"].value_or(false) && !IsWindowFullscreen()) {
+        // TODO: add ability to specify active monitor
+        const int current_screen = GetCurrentMonitor();
+        // Its important to first toggle fullscreen and only them apply size.
+        // Else this won't work (I spent 3 hours trying to debug this)
+        ToggleFullscreen();
+        SetWindowSize(GetMonitorWidth(current_screen), GetMonitorHeight(current_screen));
+    };
 
     shared::assets.sprites.load(SPRITE_PATH, SPRITE_FORMAT);
     shared::assets.sounds.load(SFX_PATH, SFX_FORMAT);

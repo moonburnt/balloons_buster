@@ -1,8 +1,11 @@
 #include "menus.hpp"
 #include "common.hpp"
+#include "engine/ui.hpp"
 #include "level.hpp"
 #include "shared.hpp"
+#include "spdlog/spdlog.h"
 #include "tomlplusplus/toml.hpp"
+#include <raylib.h>
 
 // Title Screen
 TitleScreen::TitleScreen(SceneManager* p) {
@@ -40,21 +43,21 @@ private:
     // It may be done without this thing, but will do for now
     toml::table current_settings;
 
-    std::string title_msg;
-    Vector2 title_pos;
-
-    std::string unsaved_changes_msg;
-    Vector2 unsaved_changes_pos;
+    Label title;
+    Label unsaved_changes_msg;
     bool settings_changed;
 
     TextButton* save_button;
     Button* exit_button;
 
-    std::string show_fps_title;
-    Vector2 show_fps_pos;
+    Label show_fps_title;
     Checkbox* fps_cb;
 
+    Label fullscreen_title;
+    Checkbox* fullscreen_cb;
+
     void exit_to_menu() {
+        spdlog::info("Switching to main menu");
         exit_button->reset_state();
         parent->set_current_scene(new MainMenu(parent));
     }
@@ -67,6 +70,7 @@ private:
         shared::config.save();
 
         fps_cb->reset_state();
+        fullscreen_cb->reset_state();
 
         settings_changed = false;
 
@@ -78,40 +82,57 @@ private:
         else {
             shared::window.sc_mgr.nodes.erase("fps_counter");
         }
+
+        if (shared::config.settings["fullscreen"].value_or(false)) {
+            if (!IsWindowFullscreen()) {
+                const int current_screen = GetCurrentMonitor();
+                ToggleFullscreen();
+                SetWindowSize(
+                    GetMonitorWidth(current_screen),
+                    GetMonitorHeight(current_screen));
+            };
+        }
+        else {
+            if (IsWindowFullscreen()) {
+                SetWindowSize(
+                    shared::config.settings["resolution"][0].value_or(1280),
+                    shared::config.settings["resolution"][1].value_or(720));
+                ToggleFullscreen();
+            };
+        }
     }
 
 public:
     SettingsScreen(SceneManager* p)
-        : current_settings(shared::config.settings) // this should get copied
+        : parent(p)
+        , current_settings(shared::config.settings) // this should get copied
+        , title("Settings", GetScreenWidth() / 2, 30)
+        , unsaved_changes_msg(
+              "Settings changed. Press save to apply!", GetScreenWidth() / 2, 60)
+        , settings_changed(false)
         , save_button(make_text_button("Save"))
         , exit_button(make_close_button())
+        , show_fps_title("Show FPS:", {30.0f, 100.0f})
         , fps_cb(make_checkbox(
-              shared::config.settings["show_fps"].value_exact<bool>().value())) {
-        parent = p;
-        title_msg = "Settings";
-        int center_x = GetScreenWidth() / 2;
-        title_pos.x = center_text_h(title_msg, center_x);
-        title_pos.y = 30;
-
-        unsaved_changes_msg = "Settings changed. Press save to apply!";
-        unsaved_changes_pos.x = center_text_h(unsaved_changes_msg, center_x);
-        unsaved_changes_pos.y = 60;
-
-        settings_changed = false;
+              shared::config.settings["show_fps"].value_exact<bool>().value()))
+        , fullscreen_title("Fullscreen:", {30.0f, 150.0f})
+        , fullscreen_cb(make_checkbox(
+              shared::config.settings["fullscreen"].value_exact<bool>().value())) {
+        title.center();
+        unsaved_changes_msg.center();
 
         save_button->set_pos(
-            {center_x - save_button->get_rect().width / 2, GetScreenHeight() - 100.0f});
+            {GetScreenWidth() / 2.0f - save_button->get_rect().width / 2.0f,
+             GetScreenHeight() - 100.0f});
 
-        exit_button->set_pos(
-            Vector2{static_cast<float>(GetScreenWidth() - (30 + 64)), 30.0f});
-
-        show_fps_title = "Show FPS:";
-        show_fps_pos = Vector2{30.0f, 100.0f};
+        exit_button->set_pos({static_cast<float>(GetScreenWidth() - (30 + 64)), 30.0f});
         fps_cb->set_pos({200.0f, 100.0f});
+        fullscreen_cb->set_pos({200.0f, 150.0f});
     }
 
     ~SettingsScreen() {
         delete fps_cb;
+        delete fullscreen_cb;
         delete exit_button;
     }
 
@@ -119,6 +140,7 @@ public:
         save_button->update();
         exit_button->update();
         fps_cb->update();
+        fullscreen_cb->update();
 
         if (exit_button->is_clicked()) {
             exit_to_menu();
@@ -134,35 +156,26 @@ public:
             current_settings.insert_or_assign("show_fps", fps_cb->get_toggle());
             settings_changed = true;
         }
+        else if (fullscreen_cb->is_clicked()) {
+            current_settings.insert_or_assign("fullscreen", fullscreen_cb->get_toggle());
+            settings_changed = true;
+        }
         else settings_changed = false;
     }
 
     void draw() override {
-        DrawText(
-            title_msg.c_str(),
-            title_pos.x,
-            title_pos.y,
-            DEFAULT_TEXT_SIZE,
-            DEFAULT_TEXT_COLOR);
+        title.draw();
 
-        DrawText(
-            show_fps_title.c_str(),
-            show_fps_pos.x,
-            show_fps_pos.y,
-            DEFAULT_TEXT_SIZE,
-            DEFAULT_TEXT_COLOR);
+        show_fps_title.draw();
+        fullscreen_title.draw();
 
         save_button->draw();
         exit_button->draw();
         fps_cb->draw();
+        fullscreen_cb->draw();
 
         if (settings_changed) {
-            DrawText(
-                unsaved_changes_msg.c_str(),
-                unsaved_changes_pos.x,
-                unsaved_changes_pos.y,
-                DEFAULT_TEXT_SIZE,
-                DEFAULT_TEXT_COLOR);
+            unsaved_changes_msg.draw();
         }
     }
 };
@@ -173,6 +186,7 @@ void MainMenu::call_exit() {
 }
 
 void MainMenu::new_game() {
+    spdlog::info("Switching to level");
     parent->set_current_scene(new Level());
 }
 
@@ -182,6 +196,7 @@ void MainMenu::load_game() {
 }
 
 void MainMenu::open_settings() {
+    spdlog::info("Switching to settings");
     parent->set_current_scene(new SettingsScreen(parent));
 }
 
