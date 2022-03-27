@@ -4,8 +4,10 @@
 #include "raymath.h"
 // For basic formatting
 #include <fmt/core.h>
-// For printf
-#include <fmt/printf.h>
+// For logging
+#include "spdlog/spdlog.h"
+// To log entity
+#include <cinttypes>
 // For rand()
 #include <cstdlib>
 
@@ -37,6 +39,10 @@ void process_collisions(
         PosComp& pos = this_view.get<PosComp>(entity);
         BallComponent& ball = this_view.get<BallComponent>(entity);
         if (CheckCollisionPointCircle(mouse_pos, pos, ball.radius)) {
+            spdlog::debug(
+                "Destroying entity with id {}",
+                // Converting to uint32_t coz it seems to be default type of entity id
+                static_cast<std::uint32_t>(entity));
             // TODO: add death animation, schedule destroying
             registry.destroy(entity);
             enemies_left--;
@@ -93,7 +99,7 @@ void draw_balls(entt::registry& registry) {
 }
 
 void spawn_balls(entt::registry& registry, Vector2 room_size, int amount) {
-    fmt::printf("Attempting to spawn %i enemies\n", amount);
+    spdlog::debug("Attempting to spawn {} enemies", amount);
     for (int i = 0; i < amount; i++) {
         // First we need to initialize an empty entity with no components.
         // This will make registry assign an unique entity id to it and return it.

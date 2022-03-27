@@ -44,6 +44,11 @@ find_package(fmt REQUIRED)
 target_link_libraries(Game fmt::fmt)
 target_include_directories(Game PUBLIC ${fmt_INCLUDE_DIRS})
 
+# Setup spdlog
+find_package(spdlog REQUIRED)
+target_link_libraries(Game spdlog::spdlog_header_only)
+target_include_directories(Game PUBLIC ${spdlog_INCLUDE_DIRS})
+
 target_include_directories(Game
     PRIVATE
     "${CMAKE_SOURCE_DIR}/dependencies"

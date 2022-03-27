@@ -1,6 +1,10 @@
 #include "settings.hpp"
+// For logging
+#include "spdlog/spdlog.h"
+// To save file to disk
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 #include <fstream>
-#include <iostream>
 
 SettingsManager::SettingsManager(std::string path)
     : settings_path(path) {
@@ -19,7 +23,7 @@ void SettingsManager::save() {
     // ofstream is an output stream (ifstream would be input stream).
     // These don't need to be closed manually (unlike in C), coz close() is
     // called automatically on object's destruction (e.g when function ends)
-    std::cout << "Attempting to save settings to " << settings_path << "\n";
+    spdlog::info("Attempting to save settings to {}", settings_path);
 
     std::ofstream file;
     file.open(settings_path);
@@ -37,8 +41,9 @@ bool SettingsManager::load() {
         tbl = toml::parse_file(settings_path);
     } catch (const toml::parse_error& err) {
         // In case there is a parse error (say, file doesn't exist) - print it,
-        // then attempt to write pre-existing settings (presumably default) to disk
-        std::cerr << err << "\n";
+        // then attempt to write pre-existing settings (presumably default) to disks
+        // spdlog::warn(fmt::format("{}", err));
+        spdlog::warn(fmt::format("{}: {}", err.description(), err.source()));
 
         save();
 

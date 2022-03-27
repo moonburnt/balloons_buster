@@ -1,13 +1,9 @@
 #include "utility.hpp"
-
-#include <cstdlib>
-#include <fmt/format.h>
-#include <iostream>
+#include "spdlog/spdlog.h"
 #include <raylib.h>
 
 void handle_assert(const char* file, int line, const char* fun, const char* expr) {
-    std::cout
-        << fmt::format("Assertion failed at {} in {}:{} '{}'\n", fun, file, line, expr);
+    spdlog::critical("Assertion failed at {} in {}:{} '{}'", fun, file, line, expr);
     abort();
 }
 

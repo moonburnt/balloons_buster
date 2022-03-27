@@ -1,8 +1,8 @@
 #include "engine/utility.hpp"
 #include "menus.hpp"
 #include "shared.hpp"
+// For std:max
 #include <algorithm>
-#include <iostream>
 
 #define ASSET_PATH "./Assets/"
 static constexpr const char* SPRITE_PATH = ASSET_PATH "Sprites/";

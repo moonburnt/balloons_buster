@@ -1,8 +1,9 @@
 #include "core.hpp"
-#include <cstdlib>
-#include <iostream>
-
 #include "raylib.h"
+// For logging
+#include "spdlog/spdlog.h"
+// For vsprintf
+#include <cstdio>
 
 // Scene stuff
 Scene::Scene(Color _bg_color)
@@ -53,7 +54,7 @@ void SceneManager::run_update_loop() {
         EndDrawing();
     }
 
-    std::cout << "Attempting to shutdown the game.\n";
+    spdlog::info("Attempting to shutdown the game.");
     CloseWindow();
 }
 
@@ -72,13 +73,48 @@ SceneManager::~SceneManager() {
     // TODO: stub. Maybe should delete all nodes there
 }
 
+void TraceLog(int logLevel, const char* text, va_list args) {
+    static char log_text[2048] = {0}; // I think 2048 would be enough?
+    // Doing this via std, coz fmt's function went bananas on some types.
+    std::vsprintf(log_text, text, args);
+
+    switch (logLevel) {
+    case LOG_TRACE:
+        spdlog::trace(log_text);
+        break;
+    case LOG_DEBUG:
+        spdlog::debug(log_text);
+        break;
+    case LOG_INFO:
+        spdlog::info(log_text);
+        break;
+    case LOG_WARNING:
+        spdlog::warn(log_text);
+        break;
+    case LOG_ERROR:
+        spdlog::error(log_text);
+        break;
+    case LOG_FATAL:
+        spdlog::critical(log_text);
+        break;
+    default:
+        spdlog::info(log_text);
+        break;
+    }
+}
+
 // GameWindow stuff
 GameWindow::GameWindow() {
+    // Overriding raylib's default logger to pipe messages to spdlog.
+    // Doing this to provide unified look and management for both engine and
+    // custom messages.
+    SetTraceLogCallback(TraceLog);
+    spdlog::set_pattern("[%H:%M:%S][%l] %v");
     initialized = false;
 }
 
 void GameWindow::init(int x, int y, std::string title, int fps) {
-    std::cout << "Initializing GameWindow.\n";
+    spdlog::info("Initializing GameWindow.");
 
     InitWindow(x, y, title.c_str());
     // Setting window's framerate
@@ -106,8 +142,8 @@ void GameWindow::init() {
 
 void GameWindow::run() {
     if (!initialized) {
-        std::cout << "Attempting to run unitialized GameWindow. Did you forget "
-                     "GameWindow.init()?\n";
+        spdlog::critical("Attempting to run unitialized GameWindow.\n"
+                         "Did you forget GameWindow.init()?");
         abort();
     };
 
