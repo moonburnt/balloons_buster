@@ -27,6 +27,15 @@ private:
     // Balls spawn cooldown
     Timer spawn_timer;
 
+    // Component handlers
+    void process_collisions(Vector2 mouse_pos);
+    void move_balls(float dt);
+    void draw_balls();
+    void spawn_balls(int amount);
+
+    void damage_player();
+    void kill_enemy(entt::entity entity);
+
 public:
     Level(Vector2 room_size);
     Level();
