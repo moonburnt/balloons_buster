@@ -1,5 +1,6 @@
 #include "level.hpp"
 #include "common.hpp"
+#include "menus.hpp"
 // For vector normalizaion
 #include "entt/entity/fwd.hpp"
 #include "raymath.h"
@@ -122,7 +123,9 @@ void Level::damage_player() {
     lifes--;
     life_counter.set_text(fmt::format("Lifes: {}", lifes));
     spdlog::info("Player HP has been decreased to {}", lifes);
-    // TODO: show gameover if hp falls below 0
+    if (lifes <= 0) {
+        gameover_screen = GameoverScreen(std::bind(&Level::exit_to_menu, this));
+    }
 }
 
 void Level::kill_enemy(entt::entity entity) {
@@ -134,9 +137,14 @@ void Level::kill_enemy(entt::entity entity) {
     enemies_left--;
 }
 
+void Level::exit_to_menu() {
+    parent->set_current_scene(new MainMenu(parent));
+}
+
 // Level stuff
-Level::Level(Vector2 _room_size)
-    : room_size(_room_size)
+Level::Level(SceneManager* p, Vector2 _room_size)
+    : parent(p)
+    , room_size(_room_size)
     , max_enemies(30) // TODO: rework this value to be based on Level's level.
     , enemies_left((std::rand() % (max_enemies - 10)) + 10)
     , score(0)
@@ -148,24 +156,31 @@ Level::Level(Vector2 _room_size)
     spawn_timer.start();
 }
 
-Level::Level()
+Level::Level(SceneManager* p)
     : Level(
+          p,
           {static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight())}) {
 }
 
 void Level::update(float dt) {
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        process_collisions(GetMousePosition());
-    };
+    if (gameover_screen) {
+        // TODO: stub
+        gameover_screen->update();
+    }
+    else {
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            process_collisions(GetMousePosition());
+        };
 
-    move_balls(dt);
+        move_balls(dt);
 
-    if (enemies_left < max_enemies) {
-        if (spawn_timer.tick(dt)) {
-            spawn_timer.start();
-            int spawn_amount = (std::rand() % (max_enemies - enemies_left - 1)) + 1;
-            enemies_left += spawn_amount;
-            spawn_balls(spawn_amount);
+        if (enemies_left < max_enemies) {
+            if (spawn_timer.tick(dt)) {
+                spawn_timer.start();
+                int spawn_amount = (std::rand() % (max_enemies - enemies_left - 1)) + 1;
+                enemies_left += spawn_amount;
+                spawn_balls(spawn_amount);
+            }
         }
     }
 }
@@ -174,4 +189,8 @@ void Level::draw() {
     draw_balls();
     score_counter.draw();
     life_counter.draw();
+
+    if (gameover_screen) {
+        gameover_screen->draw();
+    }
 }

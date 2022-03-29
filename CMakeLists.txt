@@ -11,6 +11,8 @@ project(Game
 add_executable(Game
     src/shared.cpp
     src/shared.hpp
+    src/event_screens.cpp
+    src/event_screens.hpp
     src/common.cpp
     src/common.hpp
     src/settings.cpp

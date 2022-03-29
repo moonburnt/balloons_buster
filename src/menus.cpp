@@ -187,7 +187,7 @@ void MainMenu::call_exit() {
 
 void MainMenu::new_game() {
     spdlog::info("Switching to level");
-    parent->set_current_scene(new Level());
+    parent->set_current_scene(new Level(parent));
 }
 
 void MainMenu::load_game() {

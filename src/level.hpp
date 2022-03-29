@@ -4,11 +4,15 @@
 #include "engine/ui.hpp"
 #include "engine/utility.hpp"
 #include "entt/entity/registry.hpp"
+#include "event_screens.hpp"
 #include "raylib.h"
+#include <optional>
 #include <string>
 
 class Level : public Scene {
 private:
+    SceneManager* parent;
+
     // Level's registry that will hold our entities.
     entt::registry registry;
 
@@ -27,6 +31,8 @@ private:
     // Balls spawn cooldown
     Timer spawn_timer;
 
+    std::optional<GameoverScreen> gameover_screen;
+
     // Component handlers
     void process_collisions(Vector2 mouse_pos);
     void move_balls(float dt);
@@ -35,10 +41,11 @@ private:
 
     void damage_player();
     void kill_enemy(entt::entity entity);
+    void exit_to_menu();
 
 public:
-    Level(Vector2 room_size);
-    Level();
+    Level(SceneManager* p, Vector2 room_size);
+    Level(SceneManager* p);
 
     void update(float dt) override;
     void draw() override;
