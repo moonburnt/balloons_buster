@@ -1,8 +1,8 @@
 #pragma once
 
 #include "engine/core.hpp"
+#include "engine/settings.hpp"
 #include "engine/storage.hpp"
-#include "settings.hpp"
 
 // There we specify things, access to which should be shared across other files
 struct AssetLoader {

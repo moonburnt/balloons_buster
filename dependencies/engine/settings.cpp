@@ -6,16 +6,11 @@
 #include <fmt/ostream.h>
 #include <fstream>
 
-SettingsManager::SettingsManager(std::string path)
+SettingsManager::SettingsManager(toml::table _default_settings, std::string path)
     : settings_path(path) {
     // Keep in mind that toml table does not keep order of items.
-    // It may be annoying while writing data to disk
-    default_settings = toml::table{
-        {"show_fps", true},
-        {"fullscreen", false},
-        {"resolution", toml::array{1280, 720}},
-        {"sfx_volume", 100},
-        {"music_volume", 100}};
+    // It may be annoying to manually edit tomls on disk due to that.
+    default_settings = _default_settings;
     settings = default_settings;
 }
 

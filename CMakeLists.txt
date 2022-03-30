@@ -15,8 +15,6 @@ add_executable(Game
     src/event_screens.hpp
     src/common.cpp
     src/common.hpp
-    src/settings.cpp
-    src/settings.hpp
     src/level.cpp
     src/level.hpp
     src/menus.cpp
@@ -24,6 +22,8 @@ add_executable(Game
     src/main.cpp
     dependencies/engine/core.cpp
     dependencies/engine/core.hpp
+    dependencies/engine/settings.cpp
+    dependencies/engine/settings.hpp
     dependencies/engine/sound.cpp
     dependencies/engine/sound.hpp
     dependencies/engine/sprite.cpp
