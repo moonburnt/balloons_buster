@@ -22,6 +22,7 @@ add_executable(Game
     src/main.cpp
     dependencies/engine/core.cpp
     dependencies/engine/core.hpp
+    dependencies/engine/quadtree.hpp
     dependencies/engine/settings.cpp
     dependencies/engine/settings.hpp
     dependencies/engine/sound.cpp
