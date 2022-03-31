@@ -13,16 +13,17 @@
 // Should be usable both as a standalone solution and with ECS.
 
 // TODO:
-// - tree levels (starting at 0, increasing by 1 with each generation of children)
 // - ability to set max depth (e.g max tree level)
 // - ability to get nearest member
 
-template<typename T> class QuadTree {
+template <typename T> class QuadTree {
 private:
     // Capacity of this tree node.
     const std::size_t capacity = 4;
-    // Boundaries of this tree.
+    // Boundaries of this tree node.
     Rectangle boundary;
+    // Depth level of this tree node. Increases with each generation by 1.
+    size_t level;
 
     // Items in this tree node.
     // Can probably be implemented as array for better efficiency, but will do.
@@ -38,9 +39,50 @@ private:
     QuadTree* south_west;
     QuadTree* south_east;
 
+    QuadTree(size_t lvl, Rectangle _boundary, std::function<bool(T, Rectangle)> _contains)
+        : boundary(_boundary)
+        , level(lvl)
+        , contains(_contains)
+        , north_east(nullptr)
+        , north_west(nullptr)
+        , south_west(nullptr)
+        , south_east(nullptr) {
+        items.reserve(capacity);
+    }
+
+    // Create 4 children that fully divide this quad into 4 quads of equal area.
+    // Attempting to do it on node with pre-existing children will overwrite them
+    // without freeing memory - proceed with caution!
+    // TODO: maybe either add safety check
+    void subdivide() {
+        // Stub, may be incorrect
+        float half_width = boundary.width / 2.0f;
+        float half_height = boundary.height / 2.0f;
+
+        size_t new_level = level + 1;
+
+        north_east = new QuadTree(
+            new_level,
+            {boundary.x + half_width, boundary.y, half_width, half_height},
+            contains);
+        north_west = new QuadTree(
+            new_level,
+            {boundary.x, boundary.y, half_width, half_height},
+            contains);
+        south_west = new QuadTree(
+            new_level,
+            {boundary.x, boundary.y + half_height, half_width, half_height},
+            contains);
+        south_east = new QuadTree(
+            new_level,
+            {boundary.x + half_width, boundary.x + half_height, half_width, half_height},
+            contains);
+    }
+
 public:
     QuadTree(Rectangle _boundary, std::function<bool(T, Rectangle)> _contains)
         : boundary(_boundary)
+        , level(0)
         , contains(_contains)
         , north_east(nullptr)
         , north_west(nullptr)
@@ -71,16 +113,6 @@ public:
             return true;
         }
 
-        // if (north_east == nullptr) {
-        //     if (items.size() < capacity) {
-        //         items.push_back(p);
-        //         return true;
-        //     }
-        //     else {
-        //         subdivide();
-        //     }
-        // }
-
         if (north_east == nullptr) {
             subdivide();
         }
@@ -95,34 +127,6 @@ public:
         // And this should never happen, but since non-void function must return
         // something at the end - returning false at the end.
         return false;
-    }
-
-    // Create 4 children that fully divide this quad into 4 quads of equal area.
-    // Attempting to do it on node with pre-existing children will overwrite them
-    // without freeing memory - proceed with caution!
-    // TODO: maybe either add safety check or private this function.
-    void subdivide() {
-        // Stub, may be incorrect
-        float half_width = boundary.width/2.0f;
-        float half_height = boundary.height/2.0f;
-
-        // Rectangle n_west = {boundary.x, boundary.y, half_width, half_height};
-        // Rectangle n_east = {
-        //     boundary.x + half_width, boundary.y, half_width, half_height};
-        // Rectangle s_west = {
-        //     boundary.x, boundary.y + half_height, half_width, half_height};
-        // Rectangle s_east = {
-        //     boundary.x + half_width, boundary.x + half_height, half_width, half_height};
-
-        north_east = new QuadTree(
-            {boundary.x + half_width, boundary.y, half_width, half_height}, contains);
-        north_west = new QuadTree(
-            {boundary.x, boundary.y, half_width, half_height}, contains);
-        south_west = new QuadTree(
-            {boundary.x, boundary.y + half_height, half_width, half_height}, contains);
-        south_east = new QuadTree(
-            {boundary.x + half_width, boundary.x + half_height, half_width, half_height}, contains);
-
     }
 
     // Find and return all items within specified rect.
