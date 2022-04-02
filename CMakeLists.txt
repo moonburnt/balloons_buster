@@ -76,6 +76,12 @@ find_package(spdlog REQUIRED)
 target_link_libraries(Game spdlog::spdlog_header_only)
 target_include_directories(Game PUBLIC ${spdlog_INCLUDE_DIRS})
 
+add_custom_target(compile_commands
+  WORKING_DIRECTORY ${CMAKE_BUILD_DIR}
+  BYPRODUCTS ${CMAKE_SOURCE_DIR}/compile_commands.json
+  COMMAND cp -f ./compile_commands.json ${CMAKE_SOURCE_DIR}/compile_commands.json
+  VERBATIM)
+
 add_custom_target(format
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   COMMAND find src \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -style=file -i {} \;
