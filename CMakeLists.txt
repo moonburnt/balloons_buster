@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
+set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # set project name and version
@@ -7,6 +8,23 @@ project(Game
     LANGUAGES CXX
     VERSION 0.1
 )
+
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    message("---- RELEASE MODE ----")
+    add_definitions(-O2)
+else()
+    message("---- DEBUG MODE ----")
+    add_definitions(-DDEBUG -O0 -g)
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Prefer new GLVND over OLD
+set(OpenGL_GL_PREFERENCE GLVND)
+
+add_definitions(-Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override -Wno-missing-field-initializers)
 
 add_executable(Game
     src/shared.cpp
@@ -37,6 +55,12 @@ add_executable(Game
     dependencies/engine/storage.hpp
 )
 
+target_include_directories(Game
+    PRIVATE
+    "${CMAKE_SOURCE_DIR}/dependencies"
+    "${CMAKE_SOURCE_DIR}/src"
+)
+
 # Setup raylib
 find_package(raylib REQUIRED)
 target_link_libraries(Game ${raylib_LIBRARIES})
@@ -52,19 +76,3 @@ find_package(spdlog REQUIRED)
 target_link_libraries(Game spdlog::spdlog_header_only)
 target_include_directories(Game PUBLIC ${spdlog_INCLUDE_DIRS})
 
-target_include_directories(Game
-    PRIVATE
-    "${CMAKE_SOURCE_DIR}/dependencies"
-    "${CMAKE_SOURCE_DIR}/src"
-)
-
-target_compile_features(Game
-    PRIVATE
-    cxx_std_17
-)
-
-# Set compile flags
-target_compile_options(Game
-    PRIVATE
-    -Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override -ferror-limit=5
-)
