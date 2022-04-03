@@ -28,6 +28,7 @@ public:
     virtual ButtonStates get_state() = 0;
     virtual Rectangle get_rect() = 0;
     virtual bool is_clicked() = 0;
+    virtual Vector2 get_pos() = 0;
 
     virtual ~ButtonBase() = default;
 };
@@ -121,7 +122,7 @@ public:
     // This getter is necessary to use pos from outside without being able
     // to overwrite its value directly (coz its meant to be done together
     // with changing position of other button's elements)
-    Vector2 get_pos();
+    Vector2 get_pos() override;
     // Same there
     Rectangle get_rect() override;
 };
@@ -177,7 +178,7 @@ public:
 };
 
 class ButtonStorage {
-private:
+protected:
     // Storage that holds buttons. Since there is no way to remove these, its
     // a vector. May rework into map if there will be need to remove elements.
     std::vector<ButtonBase*> storage;
@@ -189,7 +190,7 @@ public:
     ButtonStorage();
     ~ButtonStorage();
     // Add button or its derivatives to storage.
-    void add_button(ButtonBase* button);
+    virtual void add_button(ButtonBase* button);
     void set_manual_update_mode(bool mode);
     // Select button with specific id in storage. Any of these selectors will
     // automatically toggle on set_manual_update_mode().
@@ -210,4 +211,27 @@ public:
     // For now, doesn't have safety checks - requiesting out of bounds value will
     // probably lead to segfault.
     ButtonBase* operator[](int i);
+};
+
+class VerticalContainer : public ButtonStorage {
+private:
+    // Container position. Rect will always appear at center of it
+    Vector2 pos = {0.0f, 0.0f};
+
+    // Container's own rectangle. Its size change dynamically on addition of
+    // new items. Width is equal to width of widest element and height - height
+    // of all elements total.
+    Rectangle rect = {0.0f, 0.0f, 0.0f, 0.0f};
+
+    // Gap between items
+    float gap;
+
+public:
+    VerticalContainer(float gap);
+
+    void set_pos(Vector2 pos);
+
+    void center();
+
+    void add_button(ButtonBase* button) override;
 };

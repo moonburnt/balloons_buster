@@ -5,6 +5,7 @@
 #include <raylib.h>
 #include <string>
 #include <tuple>
+#include <algorithm>
 
 // Label
 Label::Label(const std::string& txt, Vector2 position)
@@ -19,8 +20,12 @@ void Label::center() {
 
 void Label::set_pos(Vector2 _pos, bool _center) {
     pos = _pos;
-    if (_center) center();
-    else real_pos = pos;
+    if (_center) {
+        center();
+    }
+    else {
+        real_pos = pos;
+    }
 }
 
 void Label::set_pos(Vector2 _pos) {
@@ -171,8 +176,7 @@ void Button::set_pos(Vector2 position) {
     int x_diff = rect.x - pos.x;
     int y_diff = rect.y - pos.y;
 
-    pos.x = position.x;
-    pos.y = position.y;
+    pos = position;
 
     rect.x = position.x + x_diff;
     rect.y = position.y + y_diff;
@@ -395,4 +399,63 @@ void ButtonStorage::draw() {
     for (auto button : storage) {
         button->draw();
     }
+}
+
+
+// Vertical Container
+
+VerticalContainer::VerticalContainer(float _gap) : gap(_gap) {}
+
+void VerticalContainer::set_pos(Vector2 position) {
+    float x_diff = rect.x - pos.x;
+    float y_diff = rect.y - pos.y;
+
+    pos = position;
+
+    rect.x = position.x + x_diff;
+    rect.y = position.y + y_diff;
+
+    if (storage.size() > 0) {
+        Vector2 first_pos = storage.front()->get_pos();
+        float btn_x = first_pos.x + (position.x - first_pos.x);
+        float btn_y = first_pos.y + (position.y - first_pos.y);
+
+        for (auto btn : storage) {
+            // This may be jank if buttons have different x. Won't care for now.
+            // TODO
+            Rectangle current_rect = btn->get_rect();
+
+            btn->set_pos({btn_x, btn_y});
+
+            btn_y += current_rect.height + gap;
+        }
+    }
+}
+
+void VerticalContainer::center() {
+    set_pos({pos.x - rect.width / 2.0f, pos.y - rect.height / 2.0f});
+}
+
+void VerticalContainer::add_button(ButtonBase* button) {
+    // TODO: implement different button aligns. Right now these are mess
+
+    Vector2 new_pos;
+    Rectangle button_rect = button->get_rect();
+
+    if (storage.size() > 0) {
+        Rectangle last_rect = storage.back()->get_rect();
+
+        new_pos = {last_rect.x, last_rect.y + last_rect.height + gap};
+
+        rect.height += gap + button_rect.height;
+        rect.width = std::max(rect.width, button_rect.width);
+    }
+    else {
+        new_pos = pos;
+        rect = {pos.x, pos.y, button_rect.width, button_rect.height};
+    }
+
+    button->set_pos(new_pos);
+
+    ButtonStorage::add_button(button);
 }

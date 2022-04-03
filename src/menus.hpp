@@ -10,8 +10,6 @@ private:
     SceneManager* parent;
     Timer* timer;
     Label greeter;
-    // std::string greeter_msg;
-    // Vector2 greeter_pos;
 
 public:
     TitleScreen(SceneManager* p);
@@ -30,11 +28,10 @@ private:
     };
 
     SceneManager* parent;
-    ButtonStorage buttons;
+    VerticalContainer buttons;
 
     void call_exit();
     void new_game();
-    void load_game();
     void open_settings();
 
 public:
