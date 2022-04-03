@@ -12,15 +12,15 @@ Button* make_close_button() {
         Rectangle{0, 0, 64, 64});
 }
 
-TextButton* make_text_button(std::string txt) {
-    return new TextButton(
+Button* make_text_button(std::string txt) {
+    return new Button(
+        txt,
         shared::assets.sprites["button_default"],
         shared::assets.sprites["button_hover"],
         shared::assets.sprites["button_pressed"],
         shared::assets.sounds["button_hover"],
         shared::assets.sounds["button_clicked"],
-        Rectangle{0, 0, 256, 64},
-        txt);
+        Rectangle{0, 0, 256, 64});
 }
 
 Checkbox* make_checkbox(bool default_state) {

@@ -7,18 +7,10 @@
 #include <tuple>
 
 // Label
-Label::Label(std::string txt, Vector2 position)
+Label::Label(const std::string& txt, Vector2 position)
     : text(txt)
     , pos(position)
     , real_pos(position) {
-}
-
-Label::Label(std::string txt, int x, int y)
-    : Label(txt, Vector2{static_cast<float>(x), static_cast<float>(y)}) {
-}
-
-Label::Label()
-    : Label("", Vector2{0, 0}) {
 }
 
 void Label::center() {
@@ -39,7 +31,7 @@ Vector2 Label::get_pos() {
     return pos;
 }
 
-void Label::set_text(std::string txt) {
+void Label::set_text(const std::string& txt) {
     text = txt;
 }
 
@@ -47,30 +39,74 @@ void Label::draw() {
     DrawText(text.c_str(), real_pos.x, real_pos.y, DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR);
 }
 
-// It's not necessary to use "this" in these, but it may be good for readability
 void Button::reset_state() {
     state = ButtonStates::idle;
     last_state = ButtonStates::idle;
 }
 
-// Constructors dont need to specify return state
+// Constructors don't need to specify return state
 Button::Button(
     const Texture2D* texture_default,
     const Texture2D* texture_hover,
     const Texture2D* texture_pressed,
     const Sound* sfx_hover,
     const Sound* sfx_click,
-    Rectangle rectangle) {
+    Rectangle rectangle)
+        : pos({0.0f, 0.0f})
+        , state(ButtonStates::idle)
+        , manual_update_mode(false)
+        , rect(rectangle)
+        , last_state(ButtonStates::idle) {
     textures[ButtonStates::idle] = texture_default;
     textures[ButtonStates::hover] = texture_hover;
     textures[ButtonStates::pressed] = texture_pressed;
     textures[ButtonStates::clicked] = texture_default;
     sounds[0] = sfx_hover;
     sounds[1] = sfx_click;
-    rect = rectangle;
-    pos = Vector2{0, 0};
-    manual_update_mode = false;
-    reset_state();
+}
+
+// TODO: constructor with option for text offset
+Button::Button(
+    const std::string& txt,
+    const Texture2D* texture_default,
+    const Texture2D* texture_hover,
+    const Texture2D* texture_pressed,
+    const Sound* sfx_hover,
+    const Sound* sfx_click,
+    Rectangle rectangle) : Button(
+        texture_default,
+        texture_hover,
+        texture_pressed,
+        sfx_hover,
+        sfx_click,
+        rectangle) {
+    // I'm not sure if this should be based on center of rect or on center of
+    // texture. For now it's done like that, may change in future.
+    text = new Label(
+        txt,
+        center_text(txt, {rect.width / 2.0f, rect.height / 2.0f}));
+}
+
+Button::~Button() {
+    if (text != nullptr) {
+        delete text;
+    }
+}
+
+void Button::set_callback(std::function<void ()> _on_click_callback) {
+    on_click_callback = _on_click_callback;
+}
+
+void Button::set_text(const std::string & txt) {
+    if (text == nullptr) {
+        text = new Label(
+            txt,
+            center_text(txt,{rect.width / 2.0f, rect.height / 2.0f}));
+    }
+    else {
+        text->set_text(txt);
+        text->center();
+    }
 }
 
 enum ButtonStates Button::update() {
@@ -81,16 +117,25 @@ enum ButtonStates Button::update() {
             if (IsMouseButtonUp(MOUSE_BUTTON_LEFT)) {
                 state = ButtonStates::clicked;
                 PlaySound(*sounds[1]);
+                if (on_click_callback != nullptr) {
+                    on_click_callback();
+                }
             }
         }
-        else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) state = ButtonStates::pressed;
+        else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+            state = ButtonStates::pressed;
+        }
 
         else {
-            if (last_state != ButtonStates::hover) PlaySound(*sounds[0]);
+            if (last_state != ButtonStates::hover) {
+                PlaySound(*sounds[0]);
+            }
             state = ButtonStates::hover;
         }
     }
-    else state = ButtonStates::idle;
+    else {
+        state = ButtonStates::idle;
+    }
 
     last_state = state;
 
@@ -99,6 +144,9 @@ enum ButtonStates Button::update() {
 
 void Button::draw() {
     DrawTexture(*textures[state], pos.x, pos.y, WHITE);
+    if (text != nullptr) {
+        text->draw();
+    }
 }
 
 void Button::set_state(ButtonStates _state) {
@@ -128,6 +176,12 @@ void Button::set_pos(Vector2 position) {
 
     rect.x = position.x + x_diff;
     rect.y = position.y + y_diff;
+
+    if (text != nullptr) {
+        text->set_pos(
+            {position.x + (rect.width / 2.0f),position.y + (rect.height / 2.0f)});
+        text->center();
+    }
 }
 
 Vector2 Button::get_pos() {
@@ -142,69 +196,6 @@ Rectangle Button::get_rect() {
 // overwriting from outside
 bool Button::is_clicked() {
     return state == ButtonStates::clicked;
-}
-
-// This is how we call parent's constructor from child constructor, with passing
-// required arguments to it. Parent's constructor will be solved after child.
-TextButton::TextButton(
-    const Texture2D* texture_default,
-    const Texture2D* texture_hover,
-    const Texture2D* texture_pressed,
-    const Sound* sfx_hover,
-    const Sound* sfx_click,
-    Rectangle rectangle,
-    std::string msg,
-    Vector2 msg_pos)
-    : Button(
-          texture_default,
-          texture_hover,
-          texture_pressed,
-          sfx_hover,
-          sfx_click,
-          rectangle)
-    , text(Label(msg, msg_pos)) {
-}
-
-TextButton::TextButton(
-    const Texture2D* texture_default,
-    const Texture2D* texture_hover,
-    const Texture2D* texture_pressed,
-    const Sound* sfx_hover,
-    const Sound* sfx_click,
-    Rectangle rectangle,
-    std::string msg)
-    : TextButton(
-          texture_default,
-          texture_hover,
-          texture_pressed,
-          sfx_hover,
-          sfx_click,
-          rectangle,
-          msg,
-          // I'm not sure if this should be based on center of rect or on center of
-          // texture. For now it's done like that, may change in future
-          center_text(
-              msg,
-              Vector2{texture_default->width / 2.0f, texture_default->height / 2.0f})) {
-}
-
-void TextButton::set_text(std::string txt) {
-    text.set_text(txt);
-    text.center();
-}
-
-void TextButton::draw() {
-    Button::draw();
-    text.draw();
-}
-
-void TextButton::set_pos(Vector2 position) {
-    Button::set_pos(position);
-    text.set_pos(
-        Vector2{
-            position.x + (textures[ButtonStates::idle]->width / 2.0f),
-            position.y + (textures[ButtonStates::idle]->height / 2.0f)},
-        true);
 }
 
 // Checkbox shenanigans

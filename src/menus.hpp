@@ -9,8 +9,9 @@ class TitleScreen : public Scene {
 private:
     SceneManager* parent;
     Timer* timer;
-    std::string greeter_msg;
-    Vector2 greeter_pos;
+    Label greeter;
+    // std::string greeter_msg;
+    // Vector2 greeter_pos;
 
 public:
     TitleScreen(SceneManager* p);

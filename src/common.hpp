@@ -7,7 +7,7 @@
 // and sounds loaded in.
 // - These use "new" under the hood, thus require manual deletion.
 Button* make_close_button();
-TextButton* make_text_button(std::string txt);
+Button* make_text_button(std::string txt);
 Checkbox* make_checkbox(bool default_state);
 
 // Returns random Vector2 with values between 0 and provided

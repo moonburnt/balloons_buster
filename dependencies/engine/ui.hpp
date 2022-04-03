@@ -7,6 +7,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
+#include <functional>
 
 // UI primitives.
 enum class ButtonStates {
@@ -42,9 +43,7 @@ protected:
     Vector2 real_pos;
 
 public:
-    Label(std::string txt, Vector2 position);
-    Label(std::string txt, int x, int y);
-    Label();
+    Label(const std::string& txt, Vector2 position);
 
     // Center message around its position
     void center();
@@ -54,7 +53,7 @@ public:
     Vector2 get_pos();
 
     // Set label's text. May need to re-center message after that.
-    void set_text(std::string txt);
+    void set_text(const std::string& txt);
 
     void draw();
 };
@@ -68,6 +67,11 @@ protected:
     // State update mode. See set_manual_update_mode();
     bool manual_update_mode;
     std::unordered_map<ButtonStates, const Texture2D*> textures;
+
+    // Callback function to be triggered if button has been clicked
+    std::function<void()> on_click_callback = nullptr;
+
+    Label* text = nullptr;
 
 private:
     std::unordered_map<int, const Sound*> sounds;
@@ -84,6 +88,23 @@ public:
         const Sound* sfx_hover,
         const Sound* sfx_click,
         Rectangle rectangle);
+
+    Button(
+        const std::string& text,
+        const Texture2D* texture_default,
+        const Texture2D* texture_hover,
+        const Texture2D* texture_pressed,
+        const Sound* sfx_hover,
+        const Sound* sfx_click,
+        Rectangle rectangle);
+
+    ~Button();
+
+    // Set on_click_callback function
+    void set_callback(std::function<void()> on_click_callback);
+
+    void set_text(const std::string& txt);
+
     ButtonStates update() override;
     void draw() override;
 
@@ -103,38 +124,6 @@ public:
     Vector2 get_pos();
     // Same there
     Rectangle get_rect() override;
-};
-
-class TextButton : public Button {
-private:
-    Label text;
-
-public:
-    TextButton(
-        const Texture2D* texture_default,
-        const Texture2D* texture_hover,
-        const Texture2D* texture_pressed,
-        const Sound* sfx_hover,
-        const Sound* sfx_click,
-        Rectangle rectangle,
-        std::string msg,
-        Vector2 msg_pos);
-    // This is how we define alternative constructor. It will be used
-    // automatically, if amount/order of items received by constructor match.
-    // This may be useful, since cpp doesn't have kwargs.
-    TextButton(
-        const Texture2D* texture_default,
-        const Texture2D* texture_hover,
-        const Texture2D* texture_pressed,
-        const Sound* sfx_hover,
-        const Sound* sfx_click,
-        Rectangle rectangle,
-        std::string msg);
-
-    void set_text(std::string txt);
-
-    void draw() override;
-    void set_pos(Vector2 position) override;
 };
 
 class Checkbox : public Button {

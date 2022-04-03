@@ -22,7 +22,7 @@ GameoverScreen::GameoverScreen(std::function<void()> function)
               (GetScreenWidth() + 30) / 2.0f,
               (GetScreenHeight() - 60.0f)},
           {0, 0, 0, 0})
-    , title_label("Game Over", GetScreenWidth() / 2, 160.0f)
+    , title_label("Game Over", {GetScreenWidth() / 2.0f, 160.0f})
     , exit_button(make_text_button("Back to Menu")) {
     callbacks["call_exit"] = function;
     title_label.center();

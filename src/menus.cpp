@@ -6,17 +6,15 @@
 #include "spdlog/spdlog.h"
 #include "tomlplusplus/toml.hpp"
 #include <raylib.h>
+#include <functional>
 
 // Title Screen
-TitleScreen::TitleScreen(SceneManager* p) {
-    parent = p;
+TitleScreen::TitleScreen(SceneManager* p)
+    : parent(p)
+    , timer(new Timer(2.0f))
+    , greeter("This game has been made with raylib", {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f}) {
 
-    greeter_msg = "This game has been made with raylib\0";
-    greeter_pos = center_text(
-        greeter_msg,
-        Vector2{GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f});
-
-    timer = new Timer(2.0f);
+    greeter.center();
     timer->start();
 }
 
@@ -27,12 +25,7 @@ void TitleScreen::update(float dt) {
 }
 
 void TitleScreen::draw() {
-    DrawText(
-        greeter_msg.c_str(),
-        greeter_pos.x,
-        greeter_pos.y,
-        DEFAULT_TEXT_SIZE,
-        DEFAULT_TEXT_COLOR);
+    greeter.draw();
 }
 
 // Settings Screen
@@ -47,7 +40,7 @@ private:
     Label unsaved_changes_msg;
     bool settings_changed;
 
-    TextButton* save_button;
+    Button* save_button;
     Button* exit_button;
 
     Label show_fps_title;
@@ -106,9 +99,10 @@ public:
     SettingsScreen(SceneManager* p)
         : parent(p)
         , current_settings(shared::config.settings) // this should get copied
-        , title("Settings", GetScreenWidth() / 2, 30)
+        , title("Settings", {GetScreenWidth() / 2.0f, 30.0f})
         , unsaved_changes_msg(
-              "Settings changed. Press save to apply!", GetScreenWidth() / 2, 60)
+              "Settings changed. Press save to apply!",
+              {GetScreenWidth() / 2.0f, 60.0f})
         , settings_changed(false)
         , save_button(make_text_button("Save"))
         , exit_button(make_close_button())
@@ -118,6 +112,7 @@ public:
         , fullscreen_title("Fullscreen:", {30.0f, 150.0f})
         , fullscreen_cb(make_checkbox(
               shared::config.settings["fullscreen"].value_exact<bool>().value())) {
+
         title.center();
         unsaved_changes_msg.center();
 
