@@ -114,6 +114,8 @@ void Level::process_mouse_collisions(Vector2 mouse_pos) {
             // TODO: "RewardComp" with different score values depending on type
             score += 10;
             score_counter.set_text(fmt::format("Score: {}", score));
+            enemies_killed++;
+            kill_counter.set_text(fmt::format("Balloons Popped: {}", enemies_killed));
             // For now, its only possible to pop one balloon at once
             return;
         };
@@ -208,7 +210,10 @@ void Level::damage_player() {
     life_counter.set_text(fmt::format("Lifes: {}", lifes));
     spdlog::info("Player HP has been decreased to {}", lifes);
     if (lifes <= 0) {
-        gameover_screen = GameoverScreen(std::bind(&Level::exit_to_menu, this));
+        gameover_screen = GameoverScreen(
+            "Game Over",
+            fmt::format("Final Score: {}\nBalloons Popped: {}", score, enemies_killed),
+            std::bind(&Level::exit_to_menu, this));
     }
 }
 
@@ -234,10 +239,12 @@ Level::Level(SceneManager* p, Vector2 _room_size)
     , pointer_rect({0.0f, 0.0f, pointer_size.x, pointer_size.y})
     , max_enemies(30) // TODO: rework this value to be based on Level's level.
     , enemies_left((std::rand() % (max_enemies - 10)) + 10)
+    , enemies_killed(0)
     , score(0)
     , lifes(5)
     , score_counter(fmt::format("Score: {}", score), {10.0f, 10.0f})
     , life_counter(fmt::format("Lifes: {}", lifes), {10.0f, 40.0f})
+    , kill_counter(fmt::format("Balloons Popped: {}", enemies_killed), {10.0f, 70.0f})
     , spawn_timer(3.5f) {
     spawn_balls(enemies_left);
     spawn_timer.start();
@@ -278,6 +285,7 @@ void Level::draw() {
     draw_balls();
     score_counter.draw();
     life_counter.draw();
+    kill_counter.draw();
 
     if (gameover_screen) {
         gameover_screen->draw();

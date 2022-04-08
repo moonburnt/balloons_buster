@@ -14,7 +14,7 @@ EventScreen::EventScreen(Rectangle _bg, Color _bg_color)
     , bg_color(_bg_color) {
 }
 
-GameoverScreen::GameoverScreen(std::function<void()> function)
+GameoverScreen::GameoverScreen(std::string title, std::string body, std::function<void()> function)
     : EventScreen(
           Rectangle{
               ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
@@ -22,10 +22,12 @@ GameoverScreen::GameoverScreen(std::function<void()> function)
               (GetScreenWidth() + 30) / 2.0f,
               (GetScreenHeight() - 60.0f)},
           {0, 0, 0, 0})
-    , title_label("Game Over", {GetScreenWidth() / 2.0f, 160.0f})
+    , title_label(title, {GetScreenWidth() / 2.0f, 130.0f})
+    , body_label(body, {GetScreenWidth() / 2.0f, 200.0f})
     , exit_button(make_text_button("Back to Menu")) {
     callbacks["call_exit"] = function;
     title_label.center();
+    body_label.center();
     exit_button->set_pos(Vector2{
         GetScreenWidth() / 2.0f - exit_button->get_rect().width / 2,
         GetScreenHeight() / 2.0f + 100});
@@ -45,5 +47,6 @@ void GameoverScreen::draw() {
     DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
 
     title_label.draw();
+    body_label.draw();
     exit_button->draw();
 }
