@@ -15,6 +15,9 @@ class Level : public Scene {
 private:
     SceneManager* parent;
 
+    // Specifies if Level must be closed
+    bool must_close = false;
+
     // Level's registry that will hold our entities.
     entt::registry registry;
 
@@ -42,7 +45,12 @@ private:
     // Balls spawn cooldown
     Timer spawn_timer;
 
-    std::optional<GameoverScreen> gameover_screen;
+    bool is_gameover = false;
+    GameoverScreen gameover_screen;
+
+    bool is_paused = false;
+    PauseScreen pause_screen;
+    Button pause_button;
 
     // Collision tree shenanigans
     void update_collisions_tree();
@@ -58,6 +66,7 @@ private:
 
     void damage_player();
     void kill_enemy(entt::entity entity);
+    void resume();
     void exit_to_menu();
 
 public:

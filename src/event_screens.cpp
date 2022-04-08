@@ -14,7 +14,7 @@ EventScreen::EventScreen(Rectangle _bg, Color _bg_color)
     , bg_color(_bg_color) {
 }
 
-GameoverScreen::GameoverScreen(std::string title, std::string body, std::function<void()> function)
+GameoverScreen::GameoverScreen(std::string title, std::string body, std::function<void()> exit_func)
     : EventScreen(
           Rectangle{
               ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
@@ -24,22 +24,26 @@ GameoverScreen::GameoverScreen(std::string title, std::string body, std::functio
           {0, 0, 0, 0})
     , title_label(title, {GetScreenWidth() / 2.0f, 130.0f})
     , body_label(body, {GetScreenWidth() / 2.0f, 200.0f})
-    , exit_button(make_text_button("Back to Menu")) {
-    callbacks["call_exit"] = function;
+    , buttons(32.0f) {
     title_label.center();
     body_label.center();
-    exit_button->set_pos(Vector2{
-        GetScreenWidth() / 2.0f - exit_button->get_rect().width / 2,
-        GetScreenHeight() / 2.0f + 100});
+
+    Button* exit_button = make_text_button("Back to Menu");
+    exit_button->set_callback(exit_func);
+
+    buttons.add_button(exit_button);
+
+    buttons.set_pos({GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f});
+    buttons.center();
+}
+
+void GameoverScreen::set_body_text(std::string txt) {
+    body_label.set_text(txt);
+    body_label.center();
 }
 
 void GameoverScreen::update() {
-    exit_button->update();
-
-    if (exit_button->is_clicked()) {
-        callbacks["call_exit"]();
-        return;
-    }
+    buttons.update();
 }
 
 void GameoverScreen::draw() {
@@ -48,5 +52,45 @@ void GameoverScreen::draw() {
 
     title_label.draw();
     body_label.draw();
-    exit_button->draw();
+    buttons.draw();
+}
+
+// Pause screen
+
+PauseScreen::PauseScreen(
+    std::string title, std::function<void()> cont_func, std::function<void()> exit_func)
+    : EventScreen(
+        Rectangle{
+            ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
+            30,
+            (GetScreenWidth() + 30) / 2.0f,
+            (GetScreenHeight() - 60.0f)},
+        {0, 0, 0, 0})
+    , title_label(title, {GetScreenWidth() / 2.0f, 130.0f})
+    , buttons(32.0f) {
+
+    title_label.center();
+
+    Button* cont_button = make_text_button("Continue");
+    cont_button->set_callback(cont_func);
+    Button* exit_button = make_text_button("Back to Menu");
+    exit_button->set_callback(exit_func);
+
+    buttons.add_button(cont_button);
+    buttons.add_button(exit_button);
+
+    buttons.set_pos({GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f});
+    buttons.center();
+}
+
+void PauseScreen::update() {
+    buttons.update();
+}
+
+void PauseScreen::draw() {
+    DrawRectangleRec(bg, SIDE_BG_COLOR);
+    DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
+
+    title_label.draw();
+    buttons.draw();
 }

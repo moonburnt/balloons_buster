@@ -25,13 +25,27 @@ class GameoverScreen : public EventScreen {
 private:
     Label title_label;
     Label body_label;
-    Button* exit_button;
 
-    // Storage for callback functions. Probably should move it somewhere else
-    std::unordered_map<std::string, std::function<void()>> callbacks;
+    VerticalContainer buttons;
 
 public:
-    GameoverScreen(std::string title, std::string body, std::function<void()> function);
+    GameoverScreen(std::string title, std::string body, std::function<void()> exit_func);
+
+    void set_body_text(std::string txt);
+
+    void update() override;
+    void draw() override;
+};
+
+class PauseScreen : public EventScreen {
+private:
+    Label title_label;
+    VerticalContainer buttons;
+
+public:
+    PauseScreen(
+        std::string title, std::function<void()> cont_func, std::function<void()> exit_func);
+
     void update() override;
     void draw() override;
 };

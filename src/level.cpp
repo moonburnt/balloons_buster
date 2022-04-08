@@ -1,5 +1,6 @@
 #include "level.hpp"
 #include "common.hpp"
+#include "event_screens.hpp"
 #include "menus.hpp"
 // For vector normalizaion
 #include "entt/entity/fwd.hpp"
@@ -7,12 +8,14 @@
 // For basic formatting
 #include <fmt/core.h>
 // For logging
+#include "shared.hpp"
 #include "spdlog/spdlog.h"
 // To log entity
 #include <cinttypes>
 // For rand()
 #include <cstdlib>
 #include <raylib.h>
+#include <unistd.h>
 
 // Our components.
 // Position component will be just Vector2 - no need to specify it, but we can
@@ -210,10 +213,9 @@ void Level::damage_player() {
     life_counter.set_text(fmt::format("Lifes: {}", lifes));
     spdlog::info("Player HP has been decreased to {}", lifes);
     if (lifes <= 0) {
-        gameover_screen = GameoverScreen(
-            "Game Over",
-            fmt::format("Final Score: {}\nBalloons Popped: {}", score, enemies_killed),
-            std::bind(&Level::exit_to_menu, this));
+        gameover_screen.set_body_text(
+            fmt::format("Final Score: {}\nBalloons Popped: {}", score, enemies_killed));
+        is_gameover = true;
     }
 }
 
@@ -226,8 +228,13 @@ void Level::kill_enemy(entt::entity entity) {
     enemies_left--;
 }
 
+void Level::resume() {
+    is_paused = false;
+}
+
 void Level::exit_to_menu() {
-    parent->set_current_scene(new MainMenu(parent));
+    // parent->set_current_scene(new MainMenu(parent));
+    must_close = true;
 }
 
 // Level stuff
@@ -245,7 +252,22 @@ Level::Level(SceneManager* p, Vector2 _room_size)
     , score_counter(fmt::format("Score: {}", score), {10.0f, 10.0f})
     , life_counter(fmt::format("Lifes: {}", lifes), {10.0f, 40.0f})
     , kill_counter(fmt::format("Balloons Popped: {}", enemies_killed), {10.0f, 70.0f})
-    , spawn_timer(3.5f) {
+    , spawn_timer(3.5f)
+    , gameover_screen("Game Over", "", std::bind(&Level::exit_to_menu, this))
+    , pause_screen(
+        "Paused",
+        std::bind(&Level::resume, this),
+        std::bind(&Level::exit_to_menu, this))
+    , pause_button(
+        shared::assets.sprites["cross_default"],
+        shared::assets.sprites["cross_hover"],
+        shared::assets.sprites["cross_pressed"],
+        shared::assets.sounds["button_hover"],
+        shared::assets.sounds["button_clicked"],
+        Rectangle{0, 0, 64, 64}) {
+
+    pause_button.set_pos({GetScreenWidth() - 64.0f, 0.0f});
+
     spawn_balls(enemies_left);
     spawn_timer.start();
 }
@@ -257,10 +279,23 @@ Level::Level(SceneManager* p)
 }
 
 void Level::update(float dt) {
-    if (gameover_screen) {
-        gameover_screen->update();
+    if (must_close) {
+        parent->set_current_scene(new MainMenu(parent));
+        return;
+    }
+
+    if (is_gameover) {
+        gameover_screen.update();
+    }
+    else if (is_paused) {
+        pause_screen.update();
     }
     else {
+        pause_button.update();
+        if (pause_button.is_clicked()) {
+            is_paused = true;
+        }
+
         update_collisions_tree();
         process_ball_collisions();
 
@@ -286,8 +321,12 @@ void Level::draw() {
     score_counter.draw();
     life_counter.draw();
     kill_counter.draw();
+    pause_button.draw();
 
-    if (gameover_screen) {
-        gameover_screen->draw();
+    if (is_gameover) {
+        gameover_screen.draw();
+    }
+    else if (is_paused) {
+        pause_screen.draw();
     }
 }
