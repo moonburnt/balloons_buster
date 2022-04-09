@@ -24,8 +24,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Prefer new GLVND over OLD
 set(OpenGL_GL_PREFERENCE GLVND)
 
-add_definitions(-Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override -Wno-missing-field-initializers)
-
 add_executable(Game
     src/shared.cpp
     src/shared.hpp
@@ -62,20 +60,36 @@ target_include_directories(Game
     "${CMAKE_SOURCE_DIR}/src"
 )
 
+target_compile_options(Game
+    PUBLIC
+    -Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override -Wno-missing-field-initializers
+)
+
 # Setup raylib
-find_package(raylib REQUIRED)
-target_link_libraries(Game ${raylib_LIBRARIES})
+add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/raylib")
+target_link_libraries(Game raylib)
 target_include_directories(Game PUBLIC ${raylib_INCLUDE_DIRS})
 
 # Setup fmt
-find_package(fmt REQUIRED)
-target_link_libraries(Game fmt::fmt)
+add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/fmt")
+target_link_libraries(Game fmt)
 target_include_directories(Game PUBLIC ${fmt_INCLUDE_DIRS})
 
 # Setup spdlog
-find_package(spdlog REQUIRED)
-target_link_libraries(Game spdlog::spdlog_header_only)
+add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/spdlog")
+target_link_libraries(Game spdlog)
 target_include_directories(Game PUBLIC ${spdlog_INCLUDE_DIRS})
+
+# Setup entt
+add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/entt")
+target_link_libraries(Game EnTT)
+target_include_directories(Game PUBLIC ${EnTT_INCLUDE_DIRS})
+
+# Setup tomlplusplus
+add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/tomlplusplus")
+#target_link_libraries(Game tomlplusplus)
+target_include_directories(Game PUBLIC ${tomlplusplus_INCLUDE_DIRS})
+
 
 add_custom_target(compile_commands
   WORKING_DIRECTORY ${CMAKE_BUILD_DIR}
