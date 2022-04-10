@@ -87,8 +87,17 @@ target_include_directories(Game PUBLIC ${EnTT_INCLUDE_DIRS})
 
 # Setup tomlplusplus
 add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/tomlplusplus")
-#target_link_libraries(Game tomlplusplus)
+# target_link_libraries(Game tomlplusplus)
 target_include_directories(Game PUBLIC ${tomlplusplus_INCLUDE_DIRS})
+
+# Setup box2d
+# Disable building of some features. Because testbed will mess with raylib's glfw
+# target and unit tests aren't necessary for us
+set(BOX2D_BUILD_TESTBED OFF)
+set(BOX2D_BUILD_UNIT_TESTS OFF)
+add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/box2d")
+target_link_libraries(Game box2d)
+target_include_directories(Game PUBLIC ${box2d_INCLUDE_DIRS})
 
 
 add_custom_target(compile_commands
