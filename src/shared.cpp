@@ -1,5 +1,4 @@
 #include "shared.hpp"
-#include "tomlplusplus/toml.hpp"
 
 static constexpr const char* SETTINGS_PATH = "./settings.toml";
 

@@ -36,27 +36,10 @@ add_executable(Game
     src/menus.cpp
     src/menus.hpp
     src/main.cpp
-    dependencies/engine/core.cpp
-    dependencies/engine/core.hpp
-    dependencies/engine/mapgen.hpp
-    dependencies/engine/quadtree.hpp
-    dependencies/engine/settings.cpp
-    dependencies/engine/settings.hpp
-    dependencies/engine/sound.cpp
-    dependencies/engine/sound.hpp
-    dependencies/engine/sprite.cpp
-    dependencies/engine/sprite.hpp
-    dependencies/engine/ui.cpp
-    dependencies/engine/ui.hpp
-    dependencies/engine/utility.cpp
-    dependencies/engine/utility.hpp
-    dependencies/engine/storage.cpp
-    dependencies/engine/storage.hpp
 )
 
 target_include_directories(Game
     PRIVATE
-    "${CMAKE_SOURCE_DIR}/dependencies"
     "${CMAKE_SOURCE_DIR}/src"
 )
 
@@ -65,20 +48,25 @@ target_compile_options(Game
     -Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override -Wno-missing-field-initializers
 )
 
+# Setup engine
+add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/engine")
+target_link_libraries(Game engine)
+target_include_directories(Game PUBLIC ${engine_INCLUDE_DIRS})
+
 # Setup raylib
-add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/raylib")
-target_link_libraries(Game raylib)
-target_include_directories(Game PUBLIC ${raylib_INCLUDE_DIRS})
+#add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/raylib")
+#target_link_libraries(Game raylib)
+#target_include_directories(Game PUBLIC ${raylib_INCLUDE_DIRS})
 
 # Setup fmt
-add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/fmt")
-target_link_libraries(Game fmt)
-target_include_directories(Game PUBLIC ${fmt_INCLUDE_DIRS})
+#add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/fmt")
+#target_link_libraries(Game fmt)
+#target_include_directories(Game PUBLIC ${fmt_INCLUDE_DIRS})
 
 # Setup spdlog
-add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/spdlog")
-target_link_libraries(Game spdlog)
-target_include_directories(Game PUBLIC ${spdlog_INCLUDE_DIRS})
+#add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/spdlog")
+#target_link_libraries(Game spdlog)
+#target_include_directories(Game PUBLIC ${spdlog_INCLUDE_DIRS})
 
 # Setup entt
 add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/entt")
@@ -86,9 +74,9 @@ target_link_libraries(Game EnTT)
 target_include_directories(Game PUBLIC ${EnTT_INCLUDE_DIRS})
 
 # Setup tomlplusplus
-add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/tomlplusplus")
+#add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/tomlplusplus")
 # target_link_libraries(Game tomlplusplus)
-target_include_directories(Game PUBLIC ${tomlplusplus_INCLUDE_DIRS})
+#target_include_directories(Game PUBLIC ${tomlplusplus_INCLUDE_DIRS})
 
 # Setup box2d
 # Disable building of some features. Because testbed will mess with raylib's glfw
@@ -109,5 +97,4 @@ add_custom_target(compile_commands
 add_custom_target(format
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   COMMAND find src \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -style=file -i {} \;
-  COMMAND find dependencies/engine/ \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -style=file -i {} \;
   VERBATIM)
