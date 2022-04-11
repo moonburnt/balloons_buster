@@ -1,9 +1,10 @@
 #pragma once
 
+#include "box2d/b2_world.h"
 #include "engine/core.hpp"
-#include "engine/quadtree.hpp"
 #include "engine/ui.hpp"
 #include "engine/utility.hpp"
+#include "box2d/box2d.h"
 #include "entt/entity/registry.hpp"
 #include "event_screens.hpp"
 #include "raylib.h"
@@ -23,11 +24,13 @@ private:
 
     Vector2 room_size;
 
-    // QuadTree<std::tuple<entt::entity, Vector2>> tree;
-    QuadTree<std::tuple<entt::entity, Rectangle>> tree;
+    b2World world;
 
-    Vector2 pointer_size;
-    Rectangle pointer_rect;
+    // Collision stuff
+    float accumulator = 0;
+    float phys_time = 1 / 60.0f;
+
+    Camera2D camera;
 
     // Max enemies amount
     int max_enemies;
@@ -53,16 +56,13 @@ private:
     Button pause_button;
 
     // Collision tree shenanigans
-    void update_collisions_tree();
-    void process_ball_collisions();
-    // This should probably be the last one since it destroys objects on tree,
-    // and there is no mechanism to remove these directly from it right now.
-    void process_mouse_collisions(Vector2 mouse_pos);
+    void update_collisions_tree(float dt);
 
-    // Component handlers
-    void move_balls(float dt);
-    void draw_balls();
+    void spawn_walls();
+    void draw_walls();
+
     void spawn_balls(int amount);
+    void draw_balls();
 
     void damage_player();
     void kill_enemy(entt::entity entity);
@@ -72,6 +72,8 @@ private:
 public:
     Level(SceneManager* p, Vector2 room_size);
     Level(SceneManager* p);
+
+    ~Level();
 
     void update(float dt) override;
     void draw() override;
