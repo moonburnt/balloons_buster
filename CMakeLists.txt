@@ -53,30 +53,10 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/engine")
 target_link_libraries(Game engine)
 target_include_directories(Game PUBLIC ${engine_INCLUDE_DIRS})
 
-# Setup raylib
-#add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/raylib")
-#target_link_libraries(Game raylib)
-#target_include_directories(Game PUBLIC ${raylib_INCLUDE_DIRS})
-
-# Setup fmt
-#add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/fmt")
-#target_link_libraries(Game fmt)
-#target_include_directories(Game PUBLIC ${fmt_INCLUDE_DIRS})
-
-# Setup spdlog
-#add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/spdlog")
-#target_link_libraries(Game spdlog)
-#target_include_directories(Game PUBLIC ${spdlog_INCLUDE_DIRS})
-
 # Setup entt
 add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/entt")
 target_link_libraries(Game EnTT)
 target_include_directories(Game PUBLIC ${EnTT_INCLUDE_DIRS})
-
-# Setup tomlplusplus
-#add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/tomlplusplus")
-# target_link_libraries(Game tomlplusplus)
-#target_include_directories(Game PUBLIC ${tomlplusplus_INCLUDE_DIRS})
 
 # Setup box2d
 # Disable building of some features. Because testbed will mess with raylib's glfw
