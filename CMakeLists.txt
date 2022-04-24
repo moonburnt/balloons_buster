@@ -31,6 +31,8 @@ add_executable(Game
     src/event_screens.hpp
     src/common.cpp
     src/common.hpp
+    src/components.cpp
+    src/components.hpp
     src/level.cpp
     src/level.hpp
     src/menus.cpp

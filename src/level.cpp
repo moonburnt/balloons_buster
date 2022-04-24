@@ -1,10 +1,5 @@
 #include "level.hpp"
-#include "box2d/b2_body.h"
-#include "box2d/b2_circle_shape.h"
-#include "box2d/b2_fixture.h"
-#include "box2d/b2_math.h"
-#include "box2d/b2_polygon_shape.h"
-#include "box2d/b2_world.h"
+#include "box2d/b2_world_callbacks.h"
 #include "common.hpp"
 #include "event_screens.hpp"
 #include "menus.hpp"
@@ -13,6 +8,7 @@
 #include "raymath.h"
 // For basic formatting
 #include <cstddef>
+#include <cstdint>
 #include <fmt/core.h>
 // For logging
 #include "shared.hpp"
@@ -21,119 +17,78 @@
 #include <cinttypes>
 // For rand()
 #include <cstdlib>
+#include <functional>
 #include <raylib.h>
-#include <unistd.h>
+#include <sys/types.h>
+#include "components.hpp"
+#include <cstdlib>
 
 const float ADDITIONAL_ROOM_HEIGHT = 100.0f;
 const float CAMERA_MOVE_STEP = 30.0f;
 
-// Our components.
-class RectangleComponent {
-protected:
-    Vector2 size;
-    Vector2 half_size;
-    b2PolygonShape box;
-    b2Body* rigid_body;
-    Color color;
-
+class CollisionQuerryCallback : public b2QueryCallback {
 public:
-    RectangleComponent(
-        b2World* world,
-        Vector2 pos,
-        Vector2 _size,
-        Color _color,
-        float angle = 0,
-        bool is_dynamic = true)
-        : size(_size)
-        , half_size({size.x/2, size.y/2})
-        , color(_color) {
+    // std::vector<entt::entity> collisions;
+    std::vector<CollisionComponentBase*> collisions;
 
-        b2BodyDef body_def;
-        if (is_dynamic) {
-            body_def.type = b2_dynamicBody;
-        }
-        else {
-            body_def.type = b2_staticBody;
-        }
-        body_def.position.Set(pos.x, pos.y);
-        body_def.angle = angle * DEG2RAD;
-        body_def.userData.pointer = uintptr_t(this);
-        rigid_body = world->CreateBody(&body_def);
+    bool ReportFixture(b2Fixture* fixture_def) override {
+        // collisions.push_back(
+        //     reinterpret_cast<CollisionComponentBase*>(
+        //         fixture_def->GetUserData().pointer)->entity_id);
 
-        box.SetAsBox(half_size.x, half_size.y);
+        collisions.push_back(
+            reinterpret_cast<CollisionComponentBase*>(
+                fixture_def->GetUserData().pointer));
 
-        b2FixtureDef fixture_def;
-        fixture_def.shape = &box;
-        fixture_def.density = 1.0f;
-        fixture_def.friction = 0.3f;
-
-        rigid_body->CreateFixture(&fixture_def);
-    }
-
-    void draw() {
-        DrawRectanglePro(
-            {rigid_body->GetPosition().x, rigid_body->GetPosition().y, size.x, size.y},
-            half_size,
-            rigid_body->GetAngle() * RAD2DEG,
-            color);
-    }
-};
-
-class BallComponent {
-protected:
-    b2CircleShape circle_shape;
-    b2Body* rigid_body;
-    Color color;
-
-public:
-    float radius;
-
-    BallComponent(
-        b2World* world, Vector2 pos, float _radius, Color _color, b2Vec2 velocity)
-        : color(_color)
-        , radius(_radius) {
-        b2BodyDef body_def;
-        body_def.type = b2_dynamicBody;
-        body_def.position.Set(pos.x, pos.y);
-        body_def.userData.pointer = uintptr_t(this);
-        rigid_body = world->CreateBody(&body_def);
-
-        circle_shape.m_radius = radius;
-        b2FixtureDef fixture_def;
-        fixture_def.shape = &circle_shape;
-        fixture_def.density = 1.0f;
-        fixture_def.friction = 0.3f;
-
-        rigid_body->CreateFixture(&fixture_def);
-
-        rigid_body->SetAwake(true);
-
-        // rigid_body->ApplyForceToCenter(velocity, true);
-        rigid_body->SetLinearVelocity(velocity);
-
-        // rigid_body->ApplyLinearImpulse(
-        //     velocity, rigid_body->GetWorldCenter(), true);
-    }
-
-    // ~BallComponent() {
-    //     b2World* world = rigid_body->GetWorld();
-    //     world->DestroyBody(rigid_body);
-    //     // rigid_body->SetUserData(NULL);
-    // }
-
-    void draw() {
-        DrawCircleV(
-            {rigid_body->GetPosition().x, rigid_body->GetPosition().y},
-            radius,
-            color);
+        return true;
     }
 };
 
 void Level::update_collisions_tree(float dt) {
-    // Number are velocity iterations and position iterations.
+    // Numbers are velocity iterations and position iterations.
     // TODO: figure out how these works
     world.Step(dt, 6, 2);
     // world.ClearForces();
+}
+
+void Level::process_mouse_collisions(Vector2 mouse_pos) {
+    b2AABB mouse_rect = {{mouse_pos.x, mouse_pos.y}, {mouse_pos.x, mouse_pos.y}};
+
+    CollisionQuerryCallback* querry = new CollisionQuerryCallback;
+    world.QueryAABB(querry, mouse_rect);
+
+    if (querry->collisions.size() > 0) {
+        auto this_view = registry.view<BallComponent>();
+
+        for (auto collision : querry->collisions) {
+            spdlog::info(
+                "Mouse Pointer collides with with {}",
+                static_cast<uint32_t>(collision->entity_id));
+
+            // if (registry.remove<BallComponent>(collision->entity_id)) {
+            //     world.DestroyBody(collision->body);
+            // }
+
+            // Everything before this part works as intended.
+            // This part, however, is a mess - sometimes entities don't get deleted
+            // even if you purge them. Im not sure why. Need help #TODO
+            if (this_view.contains(collision->entity_id)) {
+                spdlog::info(
+                    "{} is ball, scheduling for destruction",
+                    static_cast<uint32_t>(collision->entity_id));
+
+                remove_collision_entity(collision);
+            }
+        }
+    }
+
+    delete querry;
+}
+
+void Level::remove_collision_entity(CollisionComponentBase* component) {
+    world.DestroyBody(component->body);
+    // component->body->->SetUserData(NULL);
+    registry.destroy(component->entity_id);
 }
 
 void Level::spawn_walls() {
@@ -143,28 +98,28 @@ void Level::spawn_walls() {
     entt::entity wall_bottom = registry.create();
 
     registry.emplace<RectangleComponent>(
-        wall_bottom, &world,
+        wall_bottom, &world, wall_bottom,
         Vector2{GetScreenWidth()/2.0f, GetScreenHeight()+ADDITIONAL_ROOM_HEIGHT},
         Vector2{static_cast<float>(GetScreenWidth()), thickness}, color,
         0, false);
 
     entt::entity wall_top = registry.create();
     registry.emplace<RectangleComponent>(
-        wall_top, &world,
+        wall_top, &world, wall_top,
         Vector2{GetScreenWidth()/2.0f, -ADDITIONAL_ROOM_HEIGHT},
         Vector2{static_cast<float>(GetScreenWidth()), thickness}, color,
         0, false);
 
     entt::entity wall_left = registry.create();
     registry.emplace<RectangleComponent>(
-        wall_left, &world,
+        wall_left, &world, wall_left,
         Vector2{0.0f, GetScreenHeight()/2.0f},
         Vector2{thickness, GetScreenHeight()+ADDITIONAL_ROOM_HEIGHT*2}, color,
         0, false);
 
     entt::entity wall_right = registry.create();
     registry.emplace<RectangleComponent>(
-        wall_right, &world,
+        wall_right, &world, wall_right,
         Vector2{static_cast<float>(GetScreenWidth()), GetScreenHeight()/2.0f},
         Vector2{thickness, GetScreenHeight()+ADDITIONAL_ROOM_HEIGHT*2}, color,
         0, false);
@@ -194,7 +149,7 @@ void Level::spawn_balls(int amount) {
         Vector2 direction = Vector2Normalize(get_rand_vec2(room_size));
 
         registry.emplace<BallComponent>(
-            ball, &world, Vector2{x, y}, size, BLUE,
+            ball, &world, ball, Vector2{x, y}, size, BLUE,
             b2Vec2{direction.x*speed, -direction.y*speed});
     }
 }
@@ -335,13 +290,12 @@ void Level::update(float dt) {
             accumulator -= phys_time;
             update_collisions_tree(phys_time);
         }
-        // process_ball_collisions();
 
-        // if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        //     process_mouse_collisions(GetMousePosition());
-        // };
+        std::vector<CollisionComponentBase*> to_remove;
 
-        // move_balls(dt);
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            process_mouse_collisions(GetMousePosition());
+        };
 
         if (enemies_left < max_enemies) {
             if (spawn_timer.tick(dt)) {

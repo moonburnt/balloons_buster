@@ -1,6 +1,7 @@
 #pragma once
 
 #include "box2d/b2_world.h"
+#include "components.hpp"
 #include "engine/core.hpp"
 #include "engine/ui.hpp"
 #include "engine/utility.hpp"
@@ -57,6 +58,11 @@ private:
 
     // Collision tree shenanigans
     void update_collisions_tree(float dt);
+    void process_mouse_collisions(Vector2 mouse_pos);
+
+    // Purge entity with provided collision component
+    // Should only be casted after tree has been updated.
+    void remove_collision_entity(CollisionComponentBase* component);
 
     void spawn_walls();
     void draw_walls();
