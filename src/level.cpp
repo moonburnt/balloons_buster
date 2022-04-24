@@ -58,37 +58,37 @@ void Level::process_mouse_collisions(Vector2 mouse_pos) {
     world.QueryAABB(querry, mouse_rect);
 
     if (querry->collisions.size() > 0) {
-        auto this_view = registry.view<BallComponent>();
-
         for (auto collision : querry->collisions) {
+            const entt::entity entity_id = collision->entity_id;
             spdlog::info(
                 "Mouse Pointer collides with with {}",
-                static_cast<uint32_t>(collision->entity_id));
+                static_cast<uint32_t>(entity_id));
 
-            // if (registry.remove<BallComponent>(collision->entity_id)) {
+            // Debug thing to indicate collision. As you can see, things change
+            // color the way they should (except non-balls also do that), which
+            // should indicate correct work of collision handler.
+            collision->color = GREEN;
+
+            // However stuf from there and below has semi-undefined behavior.
+            // E.g most of the time it works, but sometimes it either refuses to
+            // delete things completely, or delete the wrong entities.
+            // Not sure what exactly causes it - entt's documentation specify
+            // destruction before the end of update cycle as fine thing.
+            // Unless I've misunderstood something, ofc.
+
+            // auto ball = registry.try_get<BallComponent>(entity_id);
+
+            // if (ball) {
+            //     spdlog::info("destroying");
+            //     collision->body->DestroyFixture(collision->body->GetFixtureList());
             //     world.DestroyBody(collision->body);
+            //     // b2Fixture* fixtures = collision->body->GetFixtureList();
+            //     registry.destroy(entity_id);
             // }
-
-            // Everything before this part works as intended.
-            // This part, however, is a mess - sometimes entities don't get deleted
-            // even if you purge them. Im not sure why. Need help #TODO
-            if (this_view.contains(collision->entity_id)) {
-                spdlog::info(
-                    "{} is ball, scheduling for destruction",
-                    static_cast<uint32_t>(collision->entity_id));
-
-                remove_collision_entity(collision);
-            }
         }
     }
 
     delete querry;
-}
-
-void Level::remove_collision_entity(CollisionComponentBase* component) {
-    world.DestroyBody(component->body);
-    // component->body->->SetUserData(NULL);
-    registry.destroy(component->entity_id);
 }
 
 void Level::spawn_walls() {

@@ -6,10 +6,6 @@
 
 // Our components.
 
-// struct InteractionInfoComponent {
-//     bool is_dead = false;
-// };
-
 class CollisionComponentBase {
 // protected:
     // b2Body* body;
@@ -48,7 +44,6 @@ protected:
 
 public:
     float radius;
-    entt::entity entity_id;
 
     BallComponent(
         b2World* world,

@@ -60,10 +60,6 @@ private:
     void update_collisions_tree(float dt);
     void process_mouse_collisions(Vector2 mouse_pos);
 
-    // Purge entity with provided collision component
-    // Should only be casted after tree has been updated.
-    void remove_collision_entity(CollisionComponentBase* component);
-
     void spawn_walls();
     void draw_walls();
 
