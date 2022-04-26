@@ -1,44 +1,35 @@
 #include "level.hpp"
-#include "box2d/b2_world_callbacks.h"
-#include "common.hpp"
-#include "event_screens.hpp"
-#include "menus.hpp"
-// For vector normalizaion
+
+#include "entt/entity/entity.hpp"
 #include "entt/entity/fwd.hpp"
-#include "raymath.h"
-// For basic formatting
-#include <cstddef>
-#include <cstdint>
-#include <fmt/core.h>
-// For logging
-#include "shared.hpp"
-#include "spdlog/spdlog.h"
-// To log entity
-#include <cinttypes>
-// For rand()
-#include <cstdlib>
-#include <functional>
-#include <raylib.h>
-#include <sys/types.h>
+#include "event_screens.hpp"
+#include "common.hpp"
 #include "components.hpp"
-#include <cstdlib>
+#include "menus.hpp"
+#include "shared.hpp"
+
+#include <box2d/b2_world_callbacks.h>
+
+#include <entt/entity/helper.hpp>
+
+#include <fmt/core.h>
+
+#include <raylib.h>
+#include <raymath.h>
+
+#include <spdlog/spdlog.h>
 
 const float ADDITIONAL_ROOM_HEIGHT = 100.0f;
 const float CAMERA_MOVE_STEP = 30.0f;
 
 class CollisionQueryCallback : public b2QueryCallback {
 public:
-    // std::vector<entt::entity> collisions;
-    std::vector<CollisionComponentBase*> collisions;
+    std::vector<entt::entity> collisions;
 
     bool ReportFixture(b2Fixture* fixture_def) override {
-        // collisions.push_back(
-        //     reinterpret_cast<CollisionComponentBase*>(
-        //         fixture_def->GetUserData().pointer)->entity_id);
-
-        collisions.push_back(
-            reinterpret_cast<CollisionComponentBase*>(
-                fixture_def->GetUserData().pointer));
+        auto user_data = reinterpret_cast<FixtureUserData*>(
+            fixture_def->GetUserData().pointer);
+        collisions.push_back(user_data->entity);
 
         return true;
     }
@@ -54,82 +45,97 @@ void Level::update_collisions_tree(float dt) {
 void Level::process_mouse_collisions(Vector2 mouse_pos) {
     b2AABB mouse_rect = {{mouse_pos.x, mouse_pos.y}, {mouse_pos.x, mouse_pos.y}};
 
-    CollisionQuerryCallback* querry = new CollisionQuerryCallback;
-    world.QueryAABB(querry, mouse_rect);
+    CollisionQueryCallback query;
+    world.QueryAABB(&query, mouse_rect);
 
-    if (querry->collisions.size() > 0) {
-        for (auto collision : querry->collisions) {
-            const entt::entity entity_id = collision->entity_id;
-            spdlog::info(
-                "Mouse Pointer collides with with {}",
-                static_cast<uint32_t>(entity_id));
+    if (query.collisions.size() == 0) {
+        return;
+    }
 
-            // Debug thing to indicate collision. As you can see, things change
-            // color the way they should (except non-balls also do that), which
-            // should indicate correct work of collision handler.
-            collision->color = GREEN;
+    std::vector<entt::entity> to_remove;
+    for (auto entity : query.collisions) {
+        if (entity == entt::null) {
+            spdlog::error(
+                "Collision returned null entity {}",
+                static_cast<uint32_t>(entity));
+            ASSERT(false);
+        }
 
-            // However stuf from there and below has semi-undefined behavior.
-            // E.g most of the time it works, but sometimes it either refuses to
-            // delete things completely, or delete the wrong entities.
-            // Not sure what exactly causes it - entt's documentation specify
-            // destruction before the end of update cycle as fine thing.
-            // Unless I've misunderstood something, ofc.
+        spdlog::info(
+            "Mouse Pointer collides with {}",
+            static_cast<uint32_t>(entity));
 
-            // auto ball = registry.try_get<BallComponent>(entity_id);
-
-            // if (ball) {
-            //     spdlog::info("destroying");
-            //     collision->body->DestroyFixture(collision->body->GetFixtureList());
-            //     world.DestroyBody(collision->body);
-            //     // b2Fixture* fixtures = collision->body->GetFixtureList();
-            //     registry.destroy(entity_id);
-            // }
+        const auto ball = registry.try_get<BallComponent>(entity);
+        if (ball != nullptr) {
+            to_remove.push_back(entity);
         }
     }
 
-    delete querry;
+    for (auto e : to_remove) {
+        spdlog::info("destroying entity {}", static_cast<uint32_t>(e));
+        registry.destroy(e);
+    }
 }
 
 void Level::spawn_walls() {
     const float thickness = 10.0f;
-    const Color color = RED;
 
-    entt::entity wall_bottom = registry.create();
+    const Vector2 positions[4] = {
+        {GetScreenWidth()/2.0f, GetScreenHeight()+ADDITIONAL_ROOM_HEIGHT},
+        {GetScreenWidth()/2.0f, -ADDITIONAL_ROOM_HEIGHT},
+        {0.0f, GetScreenHeight()/2.0f},
+        {static_cast<float>(GetScreenWidth()), GetScreenHeight()/2.0f},
+    };
 
-    registry.emplace<RectangleComponent>(
-        wall_bottom, &world, wall_bottom,
-        Vector2{GetScreenWidth()/2.0f, GetScreenHeight()+ADDITIONAL_ROOM_HEIGHT},
-        Vector2{static_cast<float>(GetScreenWidth()), thickness}, color,
-        0, false);
+    const Vector2 sizes[4] = {
+        {static_cast<float>(GetScreenWidth()), thickness},
+        {static_cast<float>(GetScreenWidth()), thickness},
+        {thickness, GetScreenHeight()+ADDITIONAL_ROOM_HEIGHT*2},
+        {thickness, GetScreenHeight()+ADDITIONAL_ROOM_HEIGHT*2},
+    };
 
-    entt::entity wall_top = registry.create();
-    registry.emplace<RectangleComponent>(
-        wall_top, &world, wall_top,
-        Vector2{GetScreenWidth()/2.0f, -ADDITIONAL_ROOM_HEIGHT},
-        Vector2{static_cast<float>(GetScreenWidth()), thickness}, color,
-        0, false);
+    for (auto i = 0u; i < 4; ++i) {
+        entt::entity wall = registry.create();
+        auto& rect_comp = registry.emplace<RectangleComponent>(wall);
+        auto& phys_comp = registry.emplace<PhysicsBodyComponent>(wall);
+        registry.emplace<ColorComponent>(wall, RED);
+        phys_comp.user_data.entity = wall;
 
-    entt::entity wall_left = registry.create();
-    registry.emplace<RectangleComponent>(
-        wall_left, &world, wall_left,
-        Vector2{0.0f, GetScreenHeight()/2.0f},
-        Vector2{thickness, GetScreenHeight()+ADDITIONAL_ROOM_HEIGHT*2}, color,
-        0, false);
+        b2BodyDef body_def;
+        body_def.type = b2_staticBody;
 
-    entt::entity wall_right = registry.create();
-    registry.emplace<RectangleComponent>(
-        wall_right, &world, wall_right,
-        Vector2{static_cast<float>(GetScreenWidth()), GetScreenHeight()/2.0f},
-        Vector2{thickness, GetScreenHeight()+ADDITIONAL_ROOM_HEIGHT*2}, color,
-        0, false);
+        const auto& pos = positions[i];
+        body_def.position.Set(pos.x, pos.y);
+        body_def.angle = 0.0f;
+        phys_comp.body = world.CreateBody(&body_def);
+
+        auto half_size = sizes[i];
+        half_size.x *= 0.5f;
+        half_size.y *= 0.5f;
+
+        rect_comp.box.SetAsBox(half_size.x, half_size.y);
+        rect_comp.size = sizes[i];
+        rect_comp.half_size = half_size;
+
+        b2FixtureDef fixture_def;
+        fixture_def.shape = &rect_comp.box;
+        fixture_def.density = 1.0f;
+        fixture_def.friction = 0.3f;
+        fixture_def.userData.pointer = reinterpret_cast<uintptr_t>(&phys_comp.user_data);
+
+        phys_comp.body->CreateFixture(&fixture_def);
+    }
 }
 
 void Level::draw_walls() {
-    auto this_view = registry.view<RectangleComponent>();
+    auto view = registry.view<RectangleComponent, ColorComponent, PhysicsBodyComponent>();
 
-    this_view.each([](auto& wall) {
-        wall.draw();
+    view.each([](auto, auto& rect, auto& color, auto& phys) {
+        DrawRectanglePro(
+            {phys.body->GetPosition().x, phys.body->GetPosition().y, rect.size.x, rect.size.y},
+            rect.half_size,
+            phys.body->GetAngle() * RAD2DEG,
+            color.color);
     });
 }
 
@@ -148,17 +154,40 @@ void Level::spawn_balls(int amount) {
         float speed = static_cast<float>(std::rand() % 200) + 10.0f;
         Vector2 direction = Vector2Normalize(get_rand_vec2(room_size));
 
-        registry.emplace<BallComponent>(
-            ball, &world, ball, Vector2{x, y}, size, BLUE,
-            b2Vec2{direction.x*speed, -direction.y*speed});
+        auto& ball_comp = registry.emplace<BallComponent>(ball);
+        auto& phys_body = registry.emplace<PhysicsBodyComponent>(ball);
+        registry.emplace<ColorComponent>(ball, BLUE);
+        phys_body.user_data.entity = ball;
+
+        ball_comp.circle_shape.m_radius = size;
+
+        b2FixtureDef fixture_def;
+        fixture_def.shape = &ball_comp.circle_shape;
+        fixture_def.density = 1.0f;
+        fixture_def.friction = 0.3f;
+        fixture_def.userData.pointer = reinterpret_cast<uintptr_t>(&phys_body.user_data);
+
+        b2BodyDef body_def;
+        body_def.type = b2_dynamicBody;
+        const auto pos = Vector2{x, y};
+        body_def.position.Set(pos.x, pos.y);
+
+        phys_body.body = world.CreateBody(&body_def);
+        phys_body.body->CreateFixture(&fixture_def);
+        phys_body.body->SetAwake(true);
+        const auto velocity = b2Vec2{direction.x*speed, -direction.y*speed};
+        phys_body.body->SetLinearVelocity(velocity);
     }
 }
 
 void Level::draw_balls() {
-    auto this_view = registry.view<BallComponent>();
+    auto view = registry.view<BallComponent, ColorComponent, PhysicsBodyComponent>();
 
-    this_view.each([](auto& ball) {
-        ball.draw();
+    view.each([](auto, auto& ball, auto& color, auto& phys) {
+        DrawCircleV(
+            {phys.body->GetPosition().x, phys.body->GetPosition().y},
+            ball.circle_shape.m_radius,
+            color.color);
     });
 }
 
@@ -189,6 +218,12 @@ void Level::resume() {
 void Level::exit_to_menu() {
     // parent->set_current_scene(new MainMenu(parent));
     must_close = true;
+}
+
+void Level::cleanup_physics(entt::registry& reg, entt::entity e) {
+    spdlog::info("Deleting body component of entity {}", static_cast<uint32_t>(e));
+    auto comp = reg.get<PhysicsBodyComponent>(e);
+    world.DestroyBody(comp.body);
 }
 
 // Level stuff
@@ -229,20 +264,14 @@ Level::Level(SceneManager* p, Vector2 _room_size)
     camera.zoom = 1.0f;
     camera.offset = {0.0f, 0.0f};
     camera.rotation = 0.0f;
+
+    registry.on_destroy<PhysicsBodyComponent>().connect<&Level::cleanup_physics>(this);
 }
 
 Level::Level(SceneManager* p)
     : Level(
           p,
           {static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight())}) {
-}
-
-Level::~Level() {
-    // auto this_view = registry.view<BallComponent>();
-
-    // this_view.each([](auto& ball) {
-    //     delete ball;
-    // });
 }
 
 void Level::update(float dt) {
@@ -290,8 +319,6 @@ void Level::update(float dt) {
             accumulator -= phys_time;
             update_collisions_tree(phys_time);
         }
-
-        std::vector<CollisionComponentBase*> to_remove;
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             process_mouse_collisions(GetMousePosition());

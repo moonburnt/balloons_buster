@@ -70,12 +70,11 @@ private:
     void kill_enemy(entt::entity entity);
     void resume();
     void exit_to_menu();
+    void cleanup_physics(entt::registry& reg, entt::entity e);
 
 public:
     Level(SceneManager* p, Vector2 room_size);
     Level(SceneManager* p);
-
-    ~Level();
 
     void update(float dt) override;
     void draw() override;
