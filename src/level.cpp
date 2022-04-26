@@ -26,7 +26,7 @@
 const float ADDITIONAL_ROOM_HEIGHT = 100.0f;
 const float CAMERA_MOVE_STEP = 30.0f;
 
-class CollisionQuerryCallback : public b2QueryCallback {
+class CollisionQueryCallback : public b2QueryCallback {
 public:
     // std::vector<entt::entity> collisions;
     std::vector<CollisionComponentBase*> collisions;
