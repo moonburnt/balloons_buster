@@ -6,4 +6,4 @@
 	url = https://github.com/erincatto/box2d.git
 [submodule "dependencies/engine"]
 	path = dependencies/engine
-	url = https://github.com/moonburnt/engine.git
+	url = git@github.com:moonburnt/engine.git
