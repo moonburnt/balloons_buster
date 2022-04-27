@@ -1,34 +1,40 @@
 #include "event_screens.hpp"
-#include "level.hpp"
-#include "raylib.h"
-// For basic formatting
+
+#include "app.hpp"
 #include "common.hpp"
+#include "level.hpp"
+
 #include <fmt/core.h>
+
 #include <tuple>
+
+#include <raylib.h>
 
 static constexpr Color SIDE_BG_COLOR{203, 219, 252, 255};
 static constexpr Color CORNER_COLOR{34, 32, 52, 255};
 
-EventScreen::EventScreen(Rectangle _bg, Color _bg_color)
+EventScreen::EventScreen(App* app, Rectangle _bg, Color _bg_color)
     : bg(_bg)
-    , bg_color(_bg_color) {
-}
+    , bg_color(_bg_color)
+    , app(app) {}
 
-GameoverScreen::GameoverScreen(std::string title, std::string body, std::function<void()> exit_func)
+GameoverScreen::GameoverScreen(App* app, std::string title, std::string body, std::function<void()> exit_func)
     : EventScreen(
-          Rectangle{
-              ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
-              30,
-              (GetScreenWidth() + 30) / 2.0f,
-              (GetScreenHeight() - 60.0f)},
-          {0, 0, 0, 0})
+        app,
+        Rectangle{
+            ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
+            30,
+            (GetScreenWidth() + 30) / 2.0f,
+            (GetScreenHeight() - 60.0f)},
+        {0, 0, 0, 0})
     , title_label(title, {GetScreenWidth() / 2.0f, 130.0f})
     , body_label(body, {GetScreenWidth() / 2.0f, 200.0f})
     , buttons(32.0f) {
     title_label.center();
     body_label.center();
 
-    Button* exit_button = make_text_button("Back to Menu");
+    GuiBuilder builder(app);
+    Button* exit_button = builder.make_text_button("Back to Menu");
     exit_button->set_callback(exit_func);
 
     buttons.add_button(exit_button);
@@ -58,8 +64,11 @@ void GameoverScreen::draw() {
 // Pause screen
 
 PauseScreen::PauseScreen(
-    std::string title, std::function<void()> cont_func, std::function<void()> exit_func)
+    App* app,
+    std::string title, std::function<void()> cont_func,
+    std::function<void()> exit_func)
     : EventScreen(
+        app,
         Rectangle{
             ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
             30,
@@ -71,9 +80,10 @@ PauseScreen::PauseScreen(
 
     title_label.center();
 
-    Button* cont_button = make_text_button("Continue");
+    GuiBuilder builder(app);
+    Button* cont_button = builder.make_text_button("Continue");
     cont_button->set_callback(cont_func);
-    Button* exit_button = make_text_button("Back to Menu");
+    Button* exit_button = builder.make_text_button("Back to Menu");
     exit_button->set_callback(exit_func);
 
     buttons.add_button(cont_button);

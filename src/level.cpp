@@ -1,15 +1,15 @@
 #include "level.hpp"
 
-#include "entt/entity/entity.hpp"
-#include "entt/entity/fwd.hpp"
+#include "app.hpp"
 #include "event_screens.hpp"
 #include "common.hpp"
 #include "components.hpp"
 #include "menus.hpp"
-#include "shared.hpp"
 
 #include <box2d/b2_world_callbacks.h>
 
+#include <entt/entity/entity.hpp>
+#include <entt/entity/fwd.hpp>
 #include <entt/entity/helper.hpp>
 
 #include <fmt/core.h>
@@ -227,7 +227,7 @@ void Level::cleanup_physics(entt::registry& reg, entt::entity e) {
 }
 
 // Level stuff
-Level::Level(SceneManager* p, Vector2 _room_size)
+Level::Level(App* app, SceneManager* p, Vector2 _room_size)
     : parent(p)
     , room_size(_room_size)
     , world({0.0f, 0.0f}) // Values are gravity
@@ -240,18 +240,20 @@ Level::Level(SceneManager* p, Vector2 _room_size)
     , life_counter(fmt::format("Lifes: {}", lifes), {10.0f, 40.0f})
     , kill_counter(fmt::format("Balloons Popped: {}", enemies_killed), {10.0f, 70.0f})
     , spawn_timer(3.5f)
-    , gameover_screen("Game Over", "", std::bind(&Level::exit_to_menu, this))
+    , gameover_screen(app, "Game Over", "", std::bind(&Level::exit_to_menu, this))
     , pause_screen(
+        app,
         "Paused",
         std::bind(&Level::resume, this),
         std::bind(&Level::exit_to_menu, this))
     , pause_button(
-        shared::assets.sprites["cross_default"],
-        shared::assets.sprites["cross_hover"],
-        shared::assets.sprites["cross_pressed"],
-        shared::assets.sounds["button_hover"],
-        shared::assets.sounds["button_clicked"],
-        Rectangle{0, 0, 64, 64}) {
+        app->assets.sprites["cross_default"],
+        app->assets.sprites["cross_hover"],
+        app->assets.sprites["cross_pressed"],
+        app->assets.sounds["button_hover"],
+        app->assets.sounds["button_clicked"],
+        Rectangle{0, 0, 64, 64})
+    , app(app) {
 
     pause_button.set_pos({GetScreenWidth() - 64.0f, 0.0f});
 
@@ -268,15 +270,15 @@ Level::Level(SceneManager* p, Vector2 _room_size)
     registry.on_destroy<PhysicsBodyComponent>().connect<&Level::cleanup_physics>(this);
 }
 
-Level::Level(SceneManager* p)
-    : Level(
+Level::Level(App* app, SceneManager* p)
+    : Level(app,
           p,
           {static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight())}) {
 }
 
 void Level::update(float dt) {
     if (must_close) {
-        parent->set_current_scene(new MainMenu(parent));
+        parent->set_current_scene(new MainMenu(app, parent));
         return;
     }
 

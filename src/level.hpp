@@ -13,6 +13,8 @@
 #include <string>
 #include <tuple>
 
+class App;
+
 class Level : public Scene {
 private:
     SceneManager* parent;
@@ -55,6 +57,7 @@ private:
     bool is_paused = false;
     PauseScreen pause_screen;
     Button pause_button;
+    App* app;
 
     // Collision tree shenanigans
     void update_collisions_tree(float dt);
@@ -73,8 +76,8 @@ private:
     void cleanup_physics(entt::registry& reg, entt::entity e);
 
 public:
-    Level(SceneManager* p, Vector2 room_size);
-    Level(SceneManager* p);
+    Level(App* app, SceneManager* p, Vector2 room_size);
+    Level(App* app, SceneManager* p);
 
     void update(float dt) override;
     void draw() override;
