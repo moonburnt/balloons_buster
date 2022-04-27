@@ -7,15 +7,18 @@
 #include <string>
 #include <unordered_map>
 
+class App;
+
 // This may be an overkill, but its starting to get hard to get through level's
 // items, so I've needed to move these primitives somewhere
 class EventScreen {
 protected:
     Rectangle bg;
     Color bg_color;
+    App* app;
 
 public:
-    EventScreen(Rectangle bg, Color bg_color);
+    EventScreen(App* app, Rectangle bg, Color bg_color);
     virtual void update() = 0;
     virtual void draw() = 0;
     virtual ~EventScreen() = default;
@@ -29,7 +32,7 @@ private:
     VerticalContainer buttons;
 
 public:
-    GameoverScreen(std::string title, std::string body, std::function<void()> exit_func);
+    GameoverScreen(App* app, std::string title, std::string body, std::function<void()> exit_func);
 
     void set_body_text(std::string txt);
 
@@ -44,7 +47,8 @@ private:
 
 public:
     PauseScreen(
-        std::string title, std::function<void()> cont_func, std::function<void()> exit_func);
+        App* app, std::string title, std::function<void()> cont_func,
+        std::function<void()> exit_func);
 
     void update() override;
     void draw() override;

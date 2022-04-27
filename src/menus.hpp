@@ -5,14 +5,17 @@
 #include "engine/utility.hpp"
 #include "raylib.h"
 
+class App;
+
 class TitleScreen : public Scene {
 private:
     SceneManager* parent;
     Timer* timer;
     Label greeter;
+    App* app;
 
 public:
-    TitleScreen(SceneManager* p);
+    TitleScreen(App* app, SceneManager* p);
 
     void update(float dt) override;
     void draw() override;
@@ -29,13 +32,14 @@ private:
 
     SceneManager* parent;
     VerticalContainer buttons;
+    App* app;
 
     void call_exit();
     void new_game();
     void open_settings();
 
 public:
-    MainMenu(SceneManager* p);
+    MainMenu(App* app, SceneManager* p);
 
     void update(float) override;
     void draw() override;

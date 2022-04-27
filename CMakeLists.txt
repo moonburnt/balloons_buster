@@ -24,9 +24,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Prefer new GLVND over OLD
 set(OpenGL_GL_PREFERENCE GLVND)
 
-add_executable(Game
-    src/shared.cpp
-    src/shared.hpp
+set(SOURCES
+    src/app.cpp
+    src/app.hpp
     src/event_screens.cpp
     src/event_screens.hpp
     src/common.cpp
@@ -38,7 +38,38 @@ add_executable(Game
     src/menus.cpp
     src/menus.hpp
     src/main.cpp
+    src/platform.hpp
+    src/platform.cpp
 )
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    file(GLOB RESOURCES
+        "Assets/SFX/*.ogg"
+        "Assets/Sprites/*.png")
+
+    add_executable(Game
+        src/macos/platform_macos.mm
+        src/macos/platform_macos.h
+        ${SOURCES}
+        ${RESOURCES})
+
+    set_target_properties(Game PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/src/macos/Info.plist.in"
+        XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER com.moonburnt.ballon-buster
+        XCODE_ATTRIBUTE_COMBINE_HIDPI_IMAGES YES
+        XCODE_ATTRIBUTE_CURRENT_PROJECT_VERSION 0.0.1
+        XCODE_ATTRIBUTE_MARKETING_VERSION 0.0.1
+        RESOURCE "${RESOURCES}"
+    )
+    add_definitions(-DPLATFORM_MACOS)
+else()
+    add_executable(Game ${SOURCES}
+        src/linux/platform_linux.hpp
+        src/linux/platform_linux.cpp)
+
+    add_definitions(-DPLATFORM_LINUX)
+endif()
 
 target_include_directories(Game
     PRIVATE
