@@ -70,3 +70,21 @@ Color get_rand_color() {
         static_cast<unsigned char>(rgb[2]),
         255};
 }
+
+int get_window_width() {
+    if (IsWindowFullscreen()) {
+        return GetMonitorWidth(GetCurrentMonitor());
+    }
+    else {
+        return GetScreenWidth();
+    }
+}
+
+int get_window_height() {
+    if (IsWindowFullscreen()) {
+        return GetMonitorHeight(GetCurrentMonitor());
+    }
+    else {
+        return GetScreenHeight();
+    }
+}

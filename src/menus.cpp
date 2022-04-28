@@ -15,7 +15,7 @@
 TitleScreen::TitleScreen(App* app, SceneManager* p)
     : parent(p)
     , timer(Timer(2.0f))
-    , greeter("This game has been made with raylib", {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f})
+    , greeter("This game has been made with raylib", {get_window_width() / 2.0f, get_window_height() / 2.0f})
     , app(app) {
 
     greeter.center();
@@ -65,15 +65,13 @@ private:
         save_button->reset_state();
         if (!settings_changed) return;
 
-        app->config->settings = current_settings;
-        app->config->save();
+        current_settings.insert_or_assign("show_fps", fps_cb->get_toggle());
+        current_settings.insert_or_assign("fullscreen", fullscreen_cb->get_toggle());
 
-        fps_cb->reset_state();
-        fullscreen_cb->reset_state();
-
+        spdlog::info("Attempting to apply new settings");
         settings_changed = false;
 
-        if (app->config->settings["show_fps"].value_exact<bool>().value()) {
+        if (current_settings["show_fps"].value_exact<bool>().value()) {
             if (app->window.sc_mgr.nodes.count("fps_counter") == 0) {
                 app->window.sc_mgr.nodes["fps_counter"] = new FrameCounter();
             }
@@ -82,33 +80,40 @@ private:
             app->window.sc_mgr.nodes.erase("fps_counter");
         }
 
-        if (app->config->settings["fullscreen"].value_or(false)) {
+        if (current_settings["fullscreen"].value_exact<bool>().value()) {
             if (!IsWindowFullscreen()) {
                 const int current_screen = GetCurrentMonitor();
+                const int screen_width = GetMonitorWidth(current_screen);
+                const int screen_height = GetMonitorHeight(current_screen);
+
                 ToggleFullscreen();
-                SetWindowSize(
-                    GetMonitorWidth(current_screen),
-                    GetMonitorHeight(current_screen));
+                SetWindowSize(screen_width, screen_height);
             };
         }
         else {
             if (IsWindowFullscreen()) {
                 SetWindowSize(
-                    app->config->settings["resolution"][0].value_or(1280),
-                    app->config->settings["resolution"][1].value_or(720));
+                    current_settings["resolution"][0].value_or(1280),
+                    current_settings["resolution"][1].value_or(720));
                 ToggleFullscreen();
             };
         }
+
+        app->config->settings = current_settings;
+        app->config->save();
+
+        spdlog::info("Resetting settings screen");
+        parent->set_current_scene(new SettingsScreen(app, parent));
     }
 
 public:
     SettingsScreen(App* app, SceneManager* p)
         : parent(p)
         , current_settings(app->config->settings) // this should get copied
-        , title("Settings", {GetScreenWidth() / 2.0f, 30.0f})
+        , title("Settings", {get_window_width() / 2.0f, 30.0f})
         , unsaved_changes_msg(
               "Settings changed. Press save to apply!",
-              {GetScreenWidth() / 2.0f, 60.0f})
+              {get_window_width() / 2.0f, 60.0f})
         , settings_changed(false)
         , show_fps_title("Show FPS:", {30.0f, 100.0f})
         , fullscreen_title("Fullscreen:", {30.0f, 150.0f})
@@ -127,12 +132,13 @@ public:
         unsaved_changes_msg.center();
 
         save_button->set_pos(
-            {GetScreenWidth() / 2.0f - save_button->get_rect().width / 2.0f,
-             GetScreenHeight() - 100.0f});
+            {get_window_width() / 2.0f - save_button->get_rect().width / 2.0f,
+             get_window_height() - 100.0f});
+        exit_button->set_pos({static_cast<float>(get_window_width() - (30 + 64)), 30.0f});
 
-        exit_button->set_pos({static_cast<float>(GetScreenWidth() - (30 + 64)), 30.0f});
-        fps_cb->set_pos({200.0f, 100.0f});
-        fullscreen_cb->set_pos({200.0f, 150.0f});
+        const float cb_x = 200.0f;
+        fps_cb->set_pos({cb_x, 100.0f});
+        fullscreen_cb->set_pos({cb_x, 150.0f});
     }
 
     ~SettingsScreen() {
@@ -157,15 +163,12 @@ public:
             return;
         }
 
-        if (fps_cb->is_clicked()) {
-            current_settings.insert_or_assign("show_fps", fps_cb->get_toggle());
+        if (fps_cb->is_clicked() || fullscreen_cb->is_clicked()) {
             settings_changed = true;
         }
-        else if (fullscreen_cb->is_clicked()) {
-            current_settings.insert_or_assign("fullscreen", fullscreen_cb->get_toggle());
-            settings_changed = true;
+        else {
+            settings_changed = false;
         }
-        else settings_changed = false;
     }
 
     void draw() override {
@@ -205,7 +208,7 @@ MainMenu::MainMenu(App* app, SceneManager* p)
     , buttons(32.0f)
     , app(app) {
 
-    buttons.set_pos({GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f});
+    buttons.set_pos({get_window_width() / 2.0f, get_window_height() / 2.0f});
 
     GuiBuilder b(app);
     buttons.add_button(b.make_text_button("New Game"));

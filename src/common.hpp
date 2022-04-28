@@ -29,3 +29,7 @@ Vector2 get_rand_vec2(Vector2 size);
 
 // Returns random non-white color
 Color get_rand_color();
+
+// Get current window's size, regardless if its fullscreen or not
+int get_window_width();
+int get_window_height();

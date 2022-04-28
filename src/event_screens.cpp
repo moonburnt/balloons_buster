@@ -22,13 +22,13 @@ GameoverScreen::GameoverScreen(App* app, std::string title, std::string body, st
     : EventScreen(
         app,
         Rectangle{
-            ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
+            ((get_window_width() - get_window_height()) / 2.0f + 30),
             30,
-            (GetScreenWidth() + 30) / 2.0f,
-            (GetScreenHeight() - 60.0f)},
+            (get_window_width() + 30) / 2.0f,
+            (get_window_height() - 60.0f)},
         {0, 0, 0, 0})
-    , title_label(title, {GetScreenWidth() / 2.0f, 130.0f})
-    , body_label(body, {GetScreenWidth() / 2.0f, 200.0f})
+    , title_label(title, {get_window_width() / 2.0f, 130.0f})
+    , body_label(body, {get_window_width() / 2.0f, 200.0f})
     , buttons(32.0f) {
     title_label.center();
     body_label.center();
@@ -39,7 +39,7 @@ GameoverScreen::GameoverScreen(App* app, std::string title, std::string body, st
 
     buttons.add_button(exit_button);
 
-    buttons.set_pos({GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f});
+    buttons.set_pos({get_window_width() / 2.0f, get_window_height() / 2.0f});
     buttons.center();
 }
 
@@ -70,12 +70,12 @@ PauseScreen::PauseScreen(
     : EventScreen(
         app,
         Rectangle{
-            ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
+            ((get_window_width() - get_window_height()) / 2.0f + 30),
             30,
-            (GetScreenWidth() + 30) / 2.0f,
-            (GetScreenHeight() - 60.0f)},
+            (get_window_width() + 30) / 2.0f,
+            (get_window_height() - 60.0f)},
         {0, 0, 0, 0})
-    , title_label(title, {GetScreenWidth() / 2.0f, 130.0f})
+    , title_label(title, {get_window_width() / 2.0f, 130.0f})
     , buttons(32.0f) {
 
     title_label.center();
@@ -89,7 +89,7 @@ PauseScreen::PauseScreen(
     buttons.add_button(cont_button);
     buttons.add_button(exit_button);
 
-    buttons.set_pos({GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f});
+    buttons.set_pos({get_window_width() / 2.0f, get_window_height() / 2.0f});
     buttons.center();
 }
 

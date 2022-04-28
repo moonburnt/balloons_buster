@@ -81,17 +81,17 @@ void Level::spawn_walls() {
     const float thickness = 10.0f;
 
     const Vector2 positions[4] = {
-        {GetScreenWidth()/2.0f, GetScreenHeight()+ADDITIONAL_ROOM_HEIGHT},
-        {GetScreenWidth()/2.0f, -ADDITIONAL_ROOM_HEIGHT},
-        {0.0f, GetScreenHeight()/2.0f},
-        {static_cast<float>(GetScreenWidth()), GetScreenHeight()/2.0f},
+        {get_window_width()/2.0f, get_window_height()+ADDITIONAL_ROOM_HEIGHT},
+        {get_window_width()/2.0f, -ADDITIONAL_ROOM_HEIGHT},
+        {0.0f, get_window_height()/2.0f},
+        {static_cast<float>(get_window_width()), get_window_height()/2.0f},
     };
 
     const Vector2 sizes[4] = {
-        {static_cast<float>(GetScreenWidth()), thickness},
-        {static_cast<float>(GetScreenWidth()), thickness},
-        {thickness, GetScreenHeight()+ADDITIONAL_ROOM_HEIGHT*2},
-        {thickness, GetScreenHeight()+ADDITIONAL_ROOM_HEIGHT*2},
+        {static_cast<float>(get_window_width()), thickness},
+        {static_cast<float>(get_window_width()), thickness},
+        {thickness, get_window_height()+ADDITIONAL_ROOM_HEIGHT*2},
+        {thickness, get_window_height()+ADDITIONAL_ROOM_HEIGHT*2},
     };
 
     for (auto i = 0u; i < 4; ++i) {
@@ -255,7 +255,7 @@ Level::Level(App* app, SceneManager* p, Vector2 _room_size)
         Rectangle{0, 0, 64, 64})
     , app(app) {
 
-    pause_button.set_pos({GetScreenWidth() - 64.0f, 0.0f});
+    pause_button.set_pos({get_window_width() - 64.0f, 0.0f});
 
     spawn_walls();
 
@@ -273,7 +273,7 @@ Level::Level(App* app, SceneManager* p, Vector2 _room_size)
 Level::Level(App* app, SceneManager* p)
     : Level(app,
           p,
-          {static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight())}) {
+          {static_cast<float>(get_window_width()), static_cast<float>(get_window_height())}) {
 }
 
 void Level::update(float dt) {
