@@ -12,11 +12,8 @@
 ## Installation
 
 ```
-git submodule update
-cd dependencies/engine
-git submodule update
-cd ..
-cd ..
+git submodule update --init
+git -C dependencies/engine submodule update --init
 mkdir ./build
 cmake . -B ./build
 cmake --build ./build
