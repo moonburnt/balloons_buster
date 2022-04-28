@@ -14,16 +14,16 @@
 // Title Screen
 TitleScreen::TitleScreen(App* app, SceneManager* p)
     : parent(p)
-    , timer(new Timer(2.0f))
+    , timer(Timer(2.0f))
     , greeter("This game has been made with raylib", {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f})
     , app(app) {
 
     greeter.center();
-    timer->start();
+    timer.start();
 }
 
 void TitleScreen::update(float dt) {
-    if (timer->tick(dt)) {
+    if (timer.tick(dt)) {
         parent->set_current_scene(new MainMenu(app, parent));
     }
 }
