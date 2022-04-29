@@ -71,6 +71,14 @@ else()
         src/linux/platform_linux.cpp)
 
     add_definitions(-DPLATFORM_LINUX)
+
+    # Custom command to be used after Game is built
+    # This should copy assets into the directory with game's binary
+    add_custom_command(TARGET Game POST_BUILD
+        COMMAND cp -r ./Assets "${CMAKE_BINARY_DIR}/game"
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        COMMENT "Copying assets to ${CMAKE_BINARY_DIR}/game"
+        )
 endif()
 
 target_include_directories(Game
@@ -101,16 +109,6 @@ option(BOX2D_BUILD_UNIT_TESTS OFFCACHE)
 add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/box2d")
 target_link_libraries(Game box2d)
 target_include_directories(Game PUBLIC ${box2d_INCLUDE_DIRS})
-
-
-# Custom command to be used after Game is built
-# This should copy assets into the directory with game's binary
-add_custom_command(TARGET Game POST_BUILD
-    COMMAND cp -r ./Assets "${CMAKE_BINARY_DIR}/game"
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    COMMENT "Copying assets to ${CMAKE_BINARY_DIR}/game"
-)
-
 
 add_custom_target(compile_commands
   WORKING_DIRECTORY ${CMAKE_BUILD_DIR}
