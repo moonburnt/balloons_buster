@@ -25,3 +25,7 @@ std::string PlatformMacos::get_sprites_dir() {
 std::string PlatformMacos::get_sounds_dir() {
     return get_resource_dir();
 }
+
+std::string PlatformMacos::get_settings_dir() {
+    return get_resource_dir();
+}

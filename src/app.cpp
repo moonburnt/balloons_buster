@@ -13,6 +13,7 @@ App::App() {
     platform = Platform::make_platform();
 
     auto resource_dir = platform->get_resource_dir();
+    auto settings_dir = platform->get_settings_dir();
 
     config = std::make_unique<SettingsManager>(
         toml::table{
@@ -21,7 +22,7 @@ App::App() {
             {"resolution", toml::array{1280, 720}},
             {"sfx_volume", 100},
             {"music_volume", 100}},
-        fmt::format("{}/settings.toml", resource_dir));
+        fmt::format("{}settings.toml", settings_dir));
 
     config->load();
 
