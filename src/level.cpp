@@ -44,6 +44,12 @@ public:
 
         auto user_data = reinterpret_cast<FixtureUserData*>(
             fixture_def->GetUserData().pointer);
+
+        spdlog::info("Collided with body {}, entity {}", reinterpret_cast<uint64_t>(body), static_cast<uint32_t>(user_data->entity));
+        auto registry = user_data->registry;
+        ASSERT(registry != nullptr);
+        ASSERT(registry->valid(user_data->entity));
+
         collisions.push_back(user_data->entity);
 
         return true;
@@ -180,6 +186,7 @@ void Level::spawn_balls(int amount) {
         auto& phys_body = registry.emplace<PhysicsBodyComponent>(ball);
         registry.emplace<ColorComponent>(ball, BLUE);
         phys_body.user_data.entity = ball;
+        phys_body.user_data.registry = &registry;
 
         b2CircleShape circle_shape;
         circle_shape.m_radius = size;
