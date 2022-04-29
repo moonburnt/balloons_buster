@@ -9,6 +9,7 @@
 
 struct FixtureUserData {
     entt::entity entity;
+    const entt::registry* registry;
 };
 
 struct RectangleComponent {
