@@ -128,7 +128,8 @@ void Level::spawn_walls() {
         auto& rect_comp = registry.emplace<RectangleComponent>(wall);
         auto& phys_comp = registry.emplace<PhysicsBodyComponent>(wall);
         registry.emplace<ColorComponent>(wall, RED);
-        phys_comp.user_data.entity = wall;
+        phys_comp.user_data->entity = wall;
+        phys_comp.user_data->registry = &registry;
 
         b2BodyDef body_def;
         body_def.type = b2_staticBody;
@@ -151,7 +152,7 @@ void Level::spawn_walls() {
         fixture_def.shape = &box;
         fixture_def.density = 1.0f;
         fixture_def.friction = 0.3f;
-        fixture_def.userData.pointer = reinterpret_cast<uintptr_t>(&phys_comp.user_data);
+        fixture_def.userData.pointer = reinterpret_cast<uintptr_t>(phys_comp.user_data.get());
 
         phys_comp.body->CreateFixture(&fixture_def);
     }
@@ -187,8 +188,8 @@ void Level::spawn_balls(int amount) {
         auto& ball_comp = registry.emplace<BallComponent>(ball);
         auto& phys_body = registry.emplace<PhysicsBodyComponent>(ball);
         registry.emplace<ColorComponent>(ball, BLUE);
-        phys_body.user_data.entity = ball;
-        phys_body.user_data.registry = &registry;
+        phys_body.user_data->entity = ball;
+        phys_body.user_data->registry = &registry;
 
         b2CircleShape circle_shape;
         circle_shape.m_radius = size;
@@ -198,7 +199,7 @@ void Level::spawn_balls(int amount) {
         fixture_def.shape = &circle_shape;
         fixture_def.density = 1.0f;
         fixture_def.friction = 0.3f;
-        fixture_def.userData.pointer = reinterpret_cast<uintptr_t>(&phys_body.user_data);
+        fixture_def.userData.pointer = reinterpret_cast<uintptr_t>(phys_body.user_data.get());
 
         b2BodyDef body_def;
         body_def.type = b2_dynamicBody;
@@ -257,7 +258,7 @@ void Level::exit_to_menu() {
 
 void Level::cleanup_physics(entt::registry& reg, entt::entity e) {
     spdlog::info("Deleting body component of entity {}", static_cast<uint32_t>(e));
-    auto comp = reg.get<PhysicsBodyComponent>(e);
+    const auto& comp = reg.get<PhysicsBodyComponent>(e);
     world.DestroyBody(comp.body);
 }
 
@@ -285,15 +286,15 @@ void Level::validate_physics() {
     for (auto e : view) {
         alive_entities.push_back(e);
         auto [body] = view.get(e);
-        user_data.push_back(&body.user_data);
+        user_data.push_back(body.user_data.get());
         physics_bodies_from_component.push_back(body.body);
-        user_data_entities.push_back(body.user_data.entity);
+        user_data_entities.push_back(body.user_data->entity);
     }
 
     for (auto e : alive_entities) {
         ASSERT(registry.valid(e));
         auto [body] = view.get(e);
-        ASSERT(registry.valid(body.user_data.entity));
+        ASSERT(registry.valid(body.user_data->entity));
         ASSERT(std::find(physics_bodies.begin(), physics_bodies.end(), body.body) != physics_bodies.end());
         ASSERT(std::find(physics_entities.begin(), physics_entities.end(), e) != physics_entities.end());
     }
