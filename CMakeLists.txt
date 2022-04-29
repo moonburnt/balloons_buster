@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# Directory to build executable into
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/game")
 
 # set project name and version
 project(Game
@@ -99,6 +101,15 @@ option(BOX2D_BUILD_UNIT_TESTS OFFCACHE)
 add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/box2d")
 target_link_libraries(Game box2d)
 target_include_directories(Game PUBLIC ${box2d_INCLUDE_DIRS})
+
+
+# Custom command to be used after Game is built
+# This should copy assets into the directory with game's binary
+add_custom_command(TARGET Game POST_BUILD
+    COMMAND cp -r ./Assets "${CMAKE_BINARY_DIR}/game"
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    COMMENT "Copying assets to ${CMAKE_BINARY_DIR}/game"
+)
 
 
 add_custom_target(compile_commands
