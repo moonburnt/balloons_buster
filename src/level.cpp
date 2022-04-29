@@ -27,6 +27,12 @@ public:
     std::vector<entt::entity> collisions;
 
     bool ReportFixture(b2Fixture* fixture_def) override {
+        const auto body = fixture_def->GetBody();
+        if (body->GetType() == b2_staticBody)
+        {
+            return true;
+        }
+
         auto user_data = reinterpret_cast<FixtureUserData*>(
             fixture_def->GetUserData().pointer);
         collisions.push_back(user_data->entity);
