@@ -1,5 +1,8 @@
 # Balloons Buster
 
+[![Linux Build](https://github.com/moonburnt/balloons_buster/actions/workflows/build_linux.yml/badge.svg)](https://github.com/moonburnt/balloons_buster/actions/workflows/build_linux.yml)
+[![Windows Build](https://github.com/moonburnt/balloons_buster/actions/workflows/build_windows.yml/badge.svg)](https://github.com/moonburnt/balloons_buster/actions/workflows/build_windows.yml)
+
 ## Description
 
 **Balloons Buster** - WIP balloon breaking game made with raylib + entt.
