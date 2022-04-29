@@ -75,6 +75,8 @@ private:
     void exit_to_menu();
     void cleanup_physics(entt::registry& reg, entt::entity e);
 
+    void validate_physics();
+
 public:
     Level(App* app, SceneManager* p, Vector2 room_size);
     Level(App* app, SceneManager* p);

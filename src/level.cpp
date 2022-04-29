@@ -102,6 +102,8 @@ void Level::process_mouse_collisions(Vector2 mouse_pos) {
         spdlog::info("destroying entity {}", static_cast<uint32_t>(e));
         registry.destroy(e);
     }
+
+    validate_physics();
 }
 
 void Level::spawn_walls() {
@@ -209,6 +211,8 @@ void Level::spawn_balls(int amount) {
         const auto velocity = b2Vec2{direction.x*speed, -direction.y*speed};
         phys_body.body->SetLinearVelocity(velocity);
     }
+
+    validate_physics();
 }
 
 void Level::draw_balls() {
@@ -255,6 +259,44 @@ void Level::cleanup_physics(entt::registry& reg, entt::entity e) {
     spdlog::info("Deleting body component of entity {}", static_cast<uint32_t>(e));
     auto comp = reg.get<PhysicsBodyComponent>(e);
     world.DestroyBody(comp.body);
+}
+
+void Level::validate_physics() {
+    auto body = world.GetBodyList();
+    std::vector<b2Body*> physics_bodies;
+    std::vector<b2Fixture*> fixtures;
+    std::vector<entt::entity> physics_entities;
+    std::vector<FixtureUserData*> physics_user_data;
+    while (body != nullptr) {
+        physics_bodies.push_back(body);
+        auto fixture = body->GetFixtureList();
+        fixtures.push_back(fixture);
+        auto data = reinterpret_cast<FixtureUserData*>(fixture->GetUserData().pointer);
+        physics_user_data.push_back(data);
+        physics_entities.push_back(data->entity);
+        body = body->GetNext();
+    }
+
+    std::vector<entt::entity> user_data_entities;
+    std::vector<entt::entity> alive_entities;
+    std::vector<b2Body*> physics_bodies_from_component;
+    std::vector<FixtureUserData*> user_data;
+    auto view = registry.view<PhysicsBodyComponent>();
+    for (auto e : view) {
+        alive_entities.push_back(e);
+        auto [body] = view.get(e);
+        user_data.push_back(&body.user_data);
+        physics_bodies_from_component.push_back(body.body);
+        user_data_entities.push_back(body.user_data.entity);
+    }
+
+    for (auto e : alive_entities) {
+        ASSERT(registry.valid(e));
+        auto [body] = view.get(e);
+        ASSERT(registry.valid(body.user_data.entity));
+        ASSERT(std::find(physics_bodies.begin(), physics_bodies.end(), body.body) != physics_bodies.end());
+        ASSERT(std::find(physics_entities.begin(), physics_entities.end(), e) != physics_entities.end());
+    }
 }
 
 // Level stuff
