@@ -2,7 +2,7 @@
 
 #include <box2d/b2_settings.h>
 #include <box2d/box2d.h>
-#include <entt/entity/fwd.hpp>
+#include <entt/entt.hpp>
 #include <raylib.h>
 
 // Our components.
@@ -23,8 +23,9 @@ struct BallComponent {
 
 struct PhysicsBodyComponent
 {
-    FixtureUserData user_data;
+    std::unique_ptr<FixtureUserData> user_data;
     b2Body* body;
+    PhysicsBodyComponent();
 };
 
 struct ColorComponent
