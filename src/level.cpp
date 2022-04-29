@@ -134,12 +134,13 @@ void Level::spawn_walls() {
         half_size.x *= 0.5f;
         half_size.y *= 0.5f;
 
-        rect_comp.box.SetAsBox(half_size.x, half_size.y);
+        b2PolygonShape box;
+        box.SetAsBox(half_size.x, half_size.y);
         rect_comp.size = sizes[i];
         rect_comp.half_size = half_size;
 
         b2FixtureDef fixture_def;
-        fixture_def.shape = &rect_comp.box;
+        fixture_def.shape = &box;
         fixture_def.density = 1.0f;
         fixture_def.friction = 0.3f;
         fixture_def.userData.pointer = reinterpret_cast<uintptr_t>(&phys_comp.user_data);
@@ -180,10 +181,12 @@ void Level::spawn_balls(int amount) {
         registry.emplace<ColorComponent>(ball, BLUE);
         phys_body.user_data.entity = ball;
 
-        ball_comp.circle_shape.m_radius = size;
+        b2CircleShape circle_shape;
+        circle_shape.m_radius = size;
+        ball_comp.radius = size;
 
         b2FixtureDef fixture_def;
-        fixture_def.shape = &ball_comp.circle_shape;
+        fixture_def.shape = &circle_shape;
         fixture_def.density = 1.0f;
         fixture_def.friction = 0.3f;
         fixture_def.userData.pointer = reinterpret_cast<uintptr_t>(&phys_body.user_data);
@@ -207,7 +210,7 @@ void Level::draw_balls() {
     view.each([](auto, auto& ball, auto& color, auto& phys) {
         DrawCircleV(
             {phys.body->GetPosition().x, phys.body->GetPosition().y},
-            ball.circle_shape.m_radius,
+            ball.radius,
             color.color);
     });
 }
