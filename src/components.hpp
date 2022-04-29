@@ -12,13 +12,12 @@ struct FixtureUserData {
 };
 
 struct RectangleComponent {
-    b2PolygonShape box;
     Vector2 half_size;
     Vector2 size;
 };
 
 struct BallComponent {
-    b2CircleShape circle_shape;
+    float radius;
 };
 
 struct PhysicsBodyComponent
