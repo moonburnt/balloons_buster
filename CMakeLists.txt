@@ -129,20 +129,15 @@ target_include_directories(Game
     "${CMAKE_SOURCE_DIR}/src"
 )
 
-target_compile_options(Game
-    PUBLIC
-    -Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override -Wno-missing-field-initializers
-)
-
 # Setup engine
 add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/engine")
 target_link_libraries(Game engine)
-target_include_directories(Game PUBLIC ${engine_INCLUDE_DIRS})
+target_include_directories(Game PRIVATE ${engine_INCLUDE_DIRS})
 
 # Setup entt
 add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/entt")
 target_link_libraries(Game EnTT)
-target_include_directories(Game PUBLIC ${EnTT_INCLUDE_DIRS})
+target_include_directories(Game PRIVATE ${EnTT_INCLUDE_DIRS})
 
 # Setup box2d
 # Disable building of some features. Because testbed will mess with raylib's glfw
@@ -151,7 +146,7 @@ option(BOX2D_BUILD_TESTBED OFF)
 option(BOX2D_BUILD_UNIT_TESTS OFFCACHE)
 add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/box2d")
 target_link_libraries(Game box2d)
-target_include_directories(Game PUBLIC ${box2d_INCLUDE_DIRS})
+target_include_directories(Game PRIVATE ${box2d_INCLUDE_DIRS})
 
 add_custom_target(compile_commands
   WORKING_DIRECTORY ${CMAKE_BUILD_DIR}
