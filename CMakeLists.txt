@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Directory to build executable into
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/game")
@@ -11,13 +10,25 @@ project(Game
     VERSION 0.1
 )
 
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    message("---- RELEASE MODE ----")
-    add_definitions(-O2)
-else()
-    message("---- DEBUG MODE ----")
-#    add_definitions(-DDEBUG -O0 -g)
-endif()
+function(set_build_type_flags)
+    if (CMAKE_BUILD_TYPE STREQUAL "Release")
+        message("---- RELEASE MODE ----")
+        add_definitions(-O2)
+    else()
+        message("---- DEBUG MODE ----")
+        #    add_definitions(-DDEBUG -O0 -g)
+    endif()
+endfunction(set_build_type_flags)
+
+function(add_copy_resources_command)
+    # Custom command to be used after Game is built
+    # This should copy assets into the directory with game's binary
+    add_custom_command(TARGET Game POST_BUILD
+        COMMAND cp -r ./Assets "${CMAKE_BINARY_DIR}/game"
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        COMMENT "Copying assets to ${CMAKE_BINARY_DIR}/game"
+    )
+endfunction(add_copy_resources_command)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -45,6 +56,8 @@ set(SOURCES
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(CMAKE_CXX_COMPILER clang++)
+
     file(GLOB RESOURCES
         "Assets/SFX/*.ogg"
         "Assets/Sprites/*.png")
@@ -65,20 +78,50 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         RESOURCE "${RESOURCES}"
     )
     add_definitions(-DPLATFORM_MACOS)
-else()
+
+    target_compile_options(Game
+        PRIVATE
+        -Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override -Wno-missing-field-initializers
+    )
+
+    set_build_type_flags()
+
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    add_executable(Game ${SOURCES}
+        src/windows/platform_windows.hpp
+        src/windows/platform_windows.cpp
+    )
+
+    add_definitions(-DPLATFORM_WINDOWS)
+
+    target_compile_options(Game
+        PRIVATE
+        /Wall /w34263 /w34266
+    )
+
+    add_copy_resources_command()
+
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(CMAKE_CXX_COMPILER clang++)
+
     add_executable(Game ${SOURCES}
         src/linux/platform_linux.hpp
-        src/linux/platform_linux.cpp)
+        src/linux/platform_linux.cpp
+    )
 
     add_definitions(-DPLATFORM_LINUX)
 
-    # Custom command to be used after Game is built
-    # This should copy assets into the directory with game's binary
-    add_custom_command(TARGET Game POST_BUILD
-        COMMAND cp -r ./Assets "${CMAKE_BINARY_DIR}/game"
-        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-        COMMENT "Copying assets to ${CMAKE_BINARY_DIR}/game"
-        )
+    target_compile_options(Game
+        PRIVATE
+        -Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override -Wno-missing-field-initializers
+    )
+
+    set_build_type_flags()
+
+    add_copy_resources_command()
+
+else()
+    message(FATAL_ERROR "Unsupported OS")
 endif()
 
 target_include_directories(Game
