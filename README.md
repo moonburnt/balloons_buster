@@ -9,8 +9,8 @@
 
 ## Pre-requirements
 
-- CMake 3.10+
-- clang++ 13.0.1
+- CMake 3.21+
+- clang++ 13.0.1 (mac and linux only)
 
 ## Installation
 

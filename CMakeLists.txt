@@ -1,8 +1,13 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.21)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Directory to build executable into
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/game")
+
+# Force usage of clang++ on macos and linux
+#if (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
+#    set(CMAKE_CXX_COMPILER clang++)
+#endif()
 
 # set project name and version
 project(Game
@@ -56,8 +61,6 @@ set(SOURCES
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(CMAKE_CXX_COMPILER clang++)
-
     file(GLOB RESOURCES
         "Assets/SFX/*.ogg"
         "Assets/Sprites/*.png")
@@ -102,8 +105,6 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_copy_resources_command()
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(CMAKE_CXX_COMPILER clang++)
-
     add_executable(Game ${SOURCES}
         src/linux/platform_linux.hpp
         src/linux/platform_linux.cpp
