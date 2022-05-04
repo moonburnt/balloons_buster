@@ -18,6 +18,9 @@
 git submodule update --init
 git -C dependencies/engine submodule update --init
 mkdir ./build
+# On mac and linux
+cmake . -B ./build -DCMAKE_CXX_COMPILER=clang++
+# On windows, just use this INSTEAD
 cmake . -B ./build
 cmake --build ./build
 ```
