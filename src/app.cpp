@@ -46,7 +46,7 @@ App::App() {
 
 void App::run() {
     if (config->settings["show_fps"].value_or(false)) {
-        window.sc_mgr.nodes["fps_counter"] = new FrameCounter();
+        window.sc_mgr.nodes["fps_counter"] = new FrameCounter({4.0f, 4.0f});
     };
 
     window.sc_mgr.set_current_scene(new TitleScreen(this, &window.sc_mgr));

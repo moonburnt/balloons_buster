@@ -22,15 +22,6 @@
 const float ADDITIONAL_ROOM_HEIGHT = 100.0f;
 const float CAMERA_MOVE_STEP = 30.0f;
 
-namespace {
-    bool operator==(const Color& c1, const Color& c2) {
-        return c1.r == c2.r
-            && c1.g == c2.g
-            && c1.b == c2.b
-            && c1.a == c2.a;
-    }
-}
-
 class CollisionQueryCallback : public b2QueryCallback {
 public:
     std::vector<entt::entity> collisions;
