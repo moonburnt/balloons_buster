@@ -70,7 +70,6 @@ private:
     void draw_balls();
 
     void damage_player();
-    void kill_enemy(entt::entity entity);
     void resume();
     void exit_to_menu();
     void cleanup_physics(entt::registry& reg, entt::entity e);

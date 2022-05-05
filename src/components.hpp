@@ -21,15 +21,17 @@ struct BallComponent {
     float radius;
 };
 
-struct PhysicsBodyComponent
-{
+struct PhysicsBodyComponent {
     std::unique_ptr<FixtureUserData> user_data;
     b2Body* body;
     PhysicsBodyComponent();
 };
 
-struct ColorComponent
-{
+struct ColorComponent {
     Color color;
     ColorComponent(const Color& color);
+};
+
+struct HealthComponent {
+    int health;
 };

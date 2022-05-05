@@ -65,6 +65,9 @@ void Level::process_mouse_collisions(Vector2 mouse_pos) {
     }
 
     std::vector<entt::entity> to_remove;
+
+    // TODO: make damage points customizable
+    int dmg = 1;
     for (auto entity : query.collisions) {
         if (entity == entt::null) {
             spdlog::error(
@@ -73,24 +76,38 @@ void Level::process_mouse_collisions(Vector2 mouse_pos) {
             ASSERT(false);
         }
 
-        spdlog::info(
+        spdlog::debug(
             "Mouse Pointer collides with {}",
             static_cast<uint32_t>(entity));
 
         const auto ball = registry.try_get<BallComponent>(entity);
         if (ball != nullptr) {
-            auto& color = registry.get<ColorComponent>(entity);
-            if (color.color == RED) {
+            auto& hp = registry.get<HealthComponent>(entity);
+            if (hp.health - dmg <= 0) {
+                spdlog::debug(
+                    "Scheduling entity {} to be removed",
+                    static_cast<uint32_t>(entity));
                 to_remove.push_back(entity);
+                enemies_left--;
+                enemies_killed++;
+                score += 15;
+                kill_counter.set_text(
+                    fmt::format("Balloons Popped: {}", enemies_killed));
             }
             else {
-                color.color = RED;
+                spdlog::debug(
+                    "Dealing {} damage to entity {}",
+                    dmg,
+                    static_cast<uint32_t>(entity));
+                hp.health -= dmg;
+                score += 5;
             }
+            score_counter.set_text(fmt::format("Score: {}", score));
         }
     }
 
     for (auto e : to_remove) {
-        spdlog::info("destroying entity {}", static_cast<uint32_t>(e));
+        spdlog::info("Destroying entity {}", static_cast<uint32_t>(e));
         registry.destroy(e);
     }
 
@@ -177,6 +194,10 @@ void Level::spawn_balls(int amount) {
         Vector2 direction = Vector2Normalize(get_rand_vec2(room_size));
 
         auto& ball_comp = registry.emplace<BallComponent>(ball);
+
+        // Set ball's HP to 1. TODO: add customization options.
+        registry.emplace<HealthComponent>(ball, 1);
+
         auto& phys_body = registry.emplace<PhysicsBodyComponent>(ball);
         registry.emplace<ColorComponent>(ball, BLUE);
         phys_body.user_data->entity = ball;
@@ -227,15 +248,6 @@ void Level::damage_player() {
             fmt::format("Final Score: {}\nBalloons Popped: {}", score, enemies_killed));
         is_gameover = true;
     }
-}
-
-void Level::kill_enemy(entt::entity entity) {
-    spdlog::debug(
-        "Destroying entity with id {}",
-        // Converting to uint32_t coz it seems to be default type of entity id
-        static_cast<std::uint32_t>(entity));
-    registry.destroy(entity);
-    enemies_left--;
 }
 
 void Level::resume() {
@@ -388,7 +400,7 @@ void Level::update(float dt) {
         }
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            process_mouse_collisions(GetMousePosition());
+            process_mouse_collisions(GetScreenToWorld2D(GetMousePosition(), camera));
         };
 
         if (enemies_left < max_enemies) {
