@@ -190,9 +190,6 @@ void Level::spawn_balls(int amount) {
         float y = room_size.y + ADDITIONAL_ROOM_HEIGHT / 2;
         float size = static_cast<float>(std::rand() % 50) + 10.0f;
 
-        float speed = static_cast<float>(std::rand() % 200) + 10.0f;
-        Vector2 direction = Vector2Normalize(get_rand_vec2(room_size));
-
         auto& ball_comp = registry.emplace<BallComponent>(ball);
 
         // Set ball's HP to 1. TODO: add customization options.
@@ -220,9 +217,10 @@ void Level::spawn_balls(int amount) {
 
         phys_body.body = world.CreateBody(&body_def);
         phys_body.body->CreateFixture(&fixture_def);
-        phys_body.body->SetAwake(true);
-        const auto velocity = b2Vec2{direction.x*speed, -direction.y*speed};
-        phys_body.body->SetLinearVelocity(velocity);
+        // A lazy way to make balloon float upwards.
+        // Does not have anything like weight, it probably affected by gravity
+        // itself (e.g will move things upwards faster if gravity is higher.
+        phys_body.body->SetGravityScale(-1.0f);
     }
 
     validate_physics();
@@ -307,7 +305,7 @@ void Level::validate_physics() {
 Level::Level(App* app, SceneManager* p, Vector2 _room_size)
     : parent(p)
     , room_size(_room_size)
-    , world({0.0f, 0.0f}) // Values are gravity
+    , world({0.0f, 6.0f}) // Values are gravity, horizontal and vertical
     , max_enemies(30) // TODO: rework this value to be based on Level's level.
     , enemies_left((std::rand() % (max_enemies - 10)) + 10)
     , enemies_killed(0)
