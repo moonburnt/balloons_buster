@@ -15,6 +15,30 @@
 
 class App;
 
+class Wind {
+private:
+    b2World* world;
+
+    float min_timer_length;
+    float max_timer_length;
+    float min_power;
+    float max_power;
+
+    Timer timer;
+
+    void blow(b2Vec2 wind);
+
+public:
+    Wind(
+        b2World* world,
+        float min_timer_length,
+        float max_timer_length,
+        float min_power,
+        float max_power);
+
+    void update(float dt);
+};
+
 class Level : public Scene {
 private:
     SceneManager* parent;
@@ -58,6 +82,8 @@ private:
     PauseScreen pause_screen;
     Button pause_button;
     App* app;
+
+    Wind wind;
 
     // Collision tree shenanigans
     void update_collisions_tree(float dt);

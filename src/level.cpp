@@ -1,6 +1,8 @@
 #include "level.hpp"
 
 #include "app.hpp"
+#include "box2d/b2_math.h"
+#include "engine/utility.hpp"
 #include "event_screens.hpp"
 #include "common.hpp"
 #include "components.hpp"
@@ -16,11 +18,69 @@
 
 #include <raylib.h>
 #include <raymath.h>
+#include <random>
 
 #include <spdlog/spdlog.h>
 
 const float ADDITIONAL_ROOM_HEIGHT = 100.0f;
 const float CAMERA_MOVE_STEP = 30.0f;
+
+Wind::Wind(
+    b2World* world,
+    float min_timer_length,
+    float max_timer_length,
+    float min_power,
+    float max_power)
+    : world(world)
+    , min_timer_length(min_timer_length)
+    , max_timer_length(max_timer_length)
+    , min_power(min_power)
+    , max_power(max_power)
+    , timer(min_timer_length) {
+    timer.start();
+}
+
+void Wind::blow(b2Vec2 wind) {
+    spdlog::info("Blowing wind with {}, {} power", wind.x, wind.y);
+    b2Body* last_body = world->GetBodyList();
+
+    int i = 0;
+    while(last_body != nullptr) {
+        i++;
+        // This should be the right way but it did not work, for some reason
+        // last_body->ApplyForceToCenter(wind, true);
+
+        // Thus temporary using this thing. Also keep in mind that we have no
+        // "weight" now, so things may move weirdly (e.g do so in perfect sync).
+        last_body->SetLinearVelocity(wind);
+        last_body = last_body->GetNext();
+    }
+    spdlog::info("Wind affected {} targets", i);
+}
+
+void Wind::update(float dt) {
+    if (timer.tick(dt)) {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<float> timer_dis(
+            min_timer_length, max_timer_length);
+
+        std::uniform_real_distribution<float> power_dis(min_power, max_power);
+        float h_power = power_dis(gen);
+        float v_power = power_dis(gen);
+
+        if (randbool()) {
+            h_power = -h_power;
+        }
+        if (randbool()) {
+            v_power = -v_power;
+        }
+
+        blow({h_power, v_power});
+        timer = Timer(timer_dis(gen));
+        timer.start();
+    }
+}
 
 class CollisionQueryCallback : public b2QueryCallback {
 public:
@@ -221,6 +281,7 @@ void Level::spawn_balls(int amount) {
         // Does not have anything like weight, it probably affected by gravity
         // itself (e.g will move things upwards faster if gravity is higher.
         phys_body.body->SetGravityScale(-1.0f);
+        // phys_body.body->SetAwake(true);
     }
 
     validate_physics();
@@ -328,7 +389,9 @@ Level::Level(App* app, SceneManager* p, Vector2 _room_size)
         app->assets.sounds["button_hover"],
         app->assets.sounds["button_clicked"],
         Rectangle{0, 0, 64, 64})
-    , app(app) {
+    , app(app)
+    // TODO: set min/max timer and power values depending on level's difficulty
+    , wind(&world, 3.0f, 5.0f, 100.0f, 300.0f) {
 
     pause_button.set_pos({get_window_width() - 64.0f, 0.0f});
 
@@ -396,6 +459,8 @@ void Level::update(float dt) {
             accumulator -= phys_time;
             update_collisions_tree(phys_time);
         }
+
+        wind.update(dt);
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             process_mouse_collisions(GetScreenToWorld2D(GetMousePosition(), camera));
