@@ -190,7 +190,8 @@ public:
 
 // Main menu
 void MainMenu::call_exit() {
-    parent->active = false;
+    // parent->active = false;
+    app->window.quit();
 }
 
 void MainMenu::new_game() {
