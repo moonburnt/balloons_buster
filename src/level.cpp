@@ -382,18 +382,16 @@ Level::Level(App* app, SceneManager* p, Vector2 _room_size)
         "Paused",
         std::bind(&Level::resume, this),
         std::bind(&Level::exit_to_menu, this))
-    , pause_button(
-        app->assets.sprites["cross_default"],
-        app->assets.sprites["cross_hover"],
-        app->assets.sprites["cross_pressed"],
-        app->assets.sounds["button_hover"],
-        app->assets.sounds["button_clicked"],
-        Rectangle{0, 0, 64, 64})
+    , pause_button()
     , app(app)
     // TODO: set min/max timer and power values depending on level's difficulty
     , wind(&world, 3.0f, 5.0f, 100.0f, 300.0f) {
 
-    pause_button.set_pos({get_window_width() - 64.0f, 0.0f});
+    GuiBuilder gb = GuiBuilder(app);
+
+    pause_button = gb.make_close_button();
+
+    pause_button->set_pos({get_window_width() - 64.0f, 0.0f});
 
     spawn_walls();
 
@@ -414,6 +412,10 @@ Level::Level(App* app, SceneManager* p)
           {static_cast<float>(get_window_width()), static_cast<float>(get_window_height())}) {
 }
 
+Level::~Level() {
+    delete pause_button;
+}
+
 void Level::update(float dt) {
     if (must_close) {
         parent->set_current_scene(new MainMenu(app, parent));
@@ -427,8 +429,8 @@ void Level::update(float dt) {
         pause_screen.update();
     }
     else {
-        pause_button.update();
-        if (pause_button.is_clicked()) {
+        pause_button->update();
+        if (pause_button->is_clicked()) {
             is_paused = true;
         }
 
@@ -498,7 +500,7 @@ void Level::draw() {
     score_counter.draw();
     life_counter.draw();
     kill_counter.draw();
-    pause_button.draw();
+    pause_button->draw();
 
     if (is_gameover) {
         gameover_screen.draw();

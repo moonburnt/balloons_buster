@@ -80,7 +80,7 @@ private:
 
     bool is_paused = false;
     PauseScreen pause_screen;
-    Button pause_button;
+    Button* pause_button;
     App* app;
 
     Wind wind;
@@ -105,6 +105,7 @@ private:
 public:
     Level(App* app, SceneManager* p, Vector2 room_size);
     Level(App* app, SceneManager* p);
+    ~Level();
 
     void update(float dt) override;
     void draw() override;
